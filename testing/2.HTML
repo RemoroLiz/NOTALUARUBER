@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORM CEK EMAS UBER</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+    <style>
+        /* ==============================
+           VARIABLES & RESET
+        ============================== */
+        :root {
+            --primary: #f0ad4e;
+            --secondary: #5bc0de;
+            --success: #5cb85c;
+            --danger: #d9534f;
+            --light: #f7f7f7;
+            --dark: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ==============================
+           BODY & CONTAINER
+        ============================== */
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url('https://images.unsplash.com/photo-1579722821273-0d5d0d193c3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ==============================
+           HEADER
+        ============================== */
+        header {
+            background: linear-gradient(135deg, var(--primary), #ff8c00);
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;
+        }
+
+        h1 i {
+            font-size: 32px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 10px;
+            position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #5cb85c;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ==============================
+           PRINT STYLES - UPDATED FOR 58MM THERMAL PRINTER WITH MODERN FONT
+        ============================== */
+        @media print {
+            body * {
+                visibility: hidden !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #printArea, #printArea * {
+                visibility: visible !important;
+            }
+
+            #printArea {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 58mm !important;
+                height: auto !important;
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                z-index: 99999 !important;
+                font-family: 'Courier Prime', 'Courier New', monospace !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .thermal-report {
+                all: initial !important;
+                font-family: 'Courier Prime', 'Courier New', monospace !important;
+                font-size: 11pt !important;
+                font-weight: 900 !important;
+                width: 58mm !important;
+                margin: 0 auto !important;
+                padding: 1mm 2mm !important;
+                line-height: 1.5 !important;
+                letter-spacing: 0.3px !important;
+                word-spacing: 0.5px !important;
+                text-rendering: optimizeLegibility !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+            }
+
+            .thermal-report * {
+                all: revert !important;
+                font-family: inherit !important;
+                font-size: inherit !important;
+                font-weight: inherit !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: inherit !important;
+                max-width: 58mm !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Optimize print speed - ensure proper timing */
+            @page {
+                margin: 0 !important;
+                padding: 0 !important;
+                size: 58mm auto !important;
+            }
+
+            /* Add slight delay between print operations */
+            .receipt-line, .receipt-divider, .receipt-header, .receipt-footer {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            /* Ensure clear printing with proper spacing */
+            .receipt-line {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+        }
+
+        /* Thermal Report Styles */
+        .thermal-report {
+            display: none;
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-size: 11pt;
+            font-weight: 900;
+            width: 58mm;
+            margin: 0 auto;
+            padding: 1mm 2mm;
+            line-height: 1.5;
+            letter-spacing: 0.3px;
+            word-spacing: 0.5px;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .report-header {
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            page-break-after: avoid;
+        }
+
+        .report-title {
+            font-size: 13pt;
+            font-weight: 900;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .report-subtitle {
+            font-size: 10pt;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .report-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            padding: 1px 0;
+            font-size: 11pt;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+            min-height: 18px;
+            align-items: center;
+        }
+
+        .report-label {
+            font-weight: 900;
+            flex-shrink: 0;
+            width: 45%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .report-value {
+            font-weight: 900;
+            flex-shrink: 0;
+            width: 53%;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .report-divider {
+            border-top: 2px solid #000;
+            margin: 4px 0;
+            height: 0;
+            clear: both;
+        }
+
+        .report-section {
+            margin: 4px 0;
+            padding: 2px 0;
+        }
+
+        .report-section-title {
+            font-weight: 900;
+            text-align: center;
+            margin: 3px 0;
+            font-size: 11pt;
+            letter-spacing: 0.4px;
+        }
+
+        .report-total {
+            font-weight: 900;
+            font-size: 12pt;
+            letter-spacing: 0.6px;
+            margin-top: 4px;
+            padding-top: 3px;
+            border-top: 2px dashed #000;
+        }
+
+        .report-footer {
+            text-align: center;
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 1px solid #000;
+            font-size: 9pt;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            margin: 3px 0;
+        }
+
+        .grid-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 1px 0;
+        }
+
+        /* ==============================
+           MAIN CONTENT
+        ============================== */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-section, .preview-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            transition: transform 0.3s;
+        }
+
+        .form-section:hover, .preview-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary);
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+            background: rgba(240, 173, 78, 0.1);
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        /* ==============================
+           FORM STYLES
+        ============================== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: #fafafa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background-color: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(240, 173, 78, 0.2);
+        }
+
+        input:read-only, input:disabled {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            z-index: 1;
+        }
+
+        .input-with-icon input, .input-with-icon select {
+            padding-left: 50px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 576px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        /* ==============================
+           BUTTONS
+        ============================== */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+        }
+
+        .btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            flex: 1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #ec971f);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ec971f, var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(240, 173, 78, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #31b0d5);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #31b0d5, var(--secondary));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(91, 192, 222, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #c9302c);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c9302c, var(--danger));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(217, 83, 79, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .test-print-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .test-print-btn:hover {
+            background: #218838;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        /* ==============================
+           PREVIEW SECTION
+        ============================== */
+        .preview-box {
+            background-color: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            max-height: 550px;
+            overflow-y: auto;
+            transition: border-color 0.3s;
+        }
+
+        .preview-box:hover {
+            border-color: var(--primary);
+        }
+
+        .preview-header {
+            text-align: center;
+            border-bottom: 2px dashed var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .preview-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .preview-id {
+            font-size: 18px;
+            color: var(--primary);
+            font-weight: bold;
+            background: rgba(240, 173, 78, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .preview-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .preview-item:hover {
+            background-color: rgba(240, 173, 78, 0.05);
+        }
+
+        .preview-label {
+            font-weight: 600;
+            color: #666;
+            flex: 1;
+        }
+
+        .preview-value {
+            font-weight: 500;
+            color: var(--dark);
+            flex: 1;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        .preview-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* ==============================
+           STATISTICS BOX
+        ============================== */
+        .stats-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            display: none;
+        }
+
+        .stats-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .stats-content {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* ==============================
+           STATUS INDICATOR
+        ============================== */
+        .status-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-success {
+            background-color: rgba(92, 184, 92, 0.1);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .status-error {
+            background-color: rgba(217, 83, 79, 0.1);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+
+        .status-info {
+            background-color: rgba(91, 192, 222, 0.1);
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+        }
+
+        /* ==============================
+           INFO BOX
+        ============================== */
+        .info-box {
+            background-color: rgba(91, 192, 222, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .info-box i {
+            color: var(--secondary);
+            margin-right: 10px;
+        }
+
+        /* ==============================
+           LOADING OVERLAY
+        ============================== */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+
+        .loading.show {
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ==============================
+           FOOTER
+        ============================== */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ==============================
+           TOOLTIP
+        ============================== */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* ==============================
+           SCROLLBAR
+        ============================== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ec971f;
+        }
+
+        /* ==============================
+           PRINT AREA (HIDDEN)
+        ============================== */
+        .print-area {
+            display: none;
+        }
+
+        /* ==============================
+           PRINT OPTIMIZATION
+        ============================== */
+        @media print {
+            /* Slow down print speed */
+            * {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+            
+            /* Ensure proper timing between elements */
+            .report-line {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        /* Print speed control */
+        .print-slow {
+            print-delay: 100ms !important;
+        }
+    </style>
+    <!-- Load Courier Prime font for better thermal print quality -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <h1><i class="fas fa-gem"></i> FORM CEK EMAS UBER</h1>
+            <p class="subtitle">Sistem Pengecekan dan Penerimaan Emas - Versi 2.0</p>
+            <div class="connection-status">
+                <div class="status-dot"></div>
+                <span id="connectionText">Terhubung ke Spreadsheet</span>
+            </div>
+        </header>
+
+        <!-- INFO BOX -->
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <strong>Petunjuk Penggunaan:</strong> Isi semua form yang bertanda (*), sistem akan otomatis menghitung kadar mesin, berat terima, dan harga. Klik "Simpan & Cetak" untuk menyimpan ke spreadsheet dan mencetak struk.
+        </div>
+
+        <!-- STATUS INDICATOR -->
+        <div class="status-indicator" id="statusIndicator">
+            <span id="statusMessage"></span>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- FORM SECTION -->
+            <section class="form-section">
+                <h2 class="section-title"><i class="fas fa-edit"></i> Form Input Data</h2>
+                <form id="emasForm">
+                    <!-- ROW 1 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="kodeSales" class="required"><i class="fas fa-id-card"></i> Kode Sales</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user-tag"></i>
+                                <input type="number" id="kodeSales" name="kodeSales" required placeholder="Masukkan kode sales">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cokimTerima" class="required"><i class="fas fa-money-bill-wave"></i> Cokim Terima</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-hand-holding-usd"></i>
+                                <input type="number" id="cokimTerima" name="cokimTerima" required placeholder="Masukkan jumlah cokim">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JENIS BARANG -->
+                    <div class="form-group">
+                        <label for="jenisBarang" class="required"><i class="fas fa-box-open"></i> Jenis Barang</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-box"></i>
+                            <input type="text" id="jenisBarang" name="jenisBarang" required placeholder="Contoh: Gelang, Kalung, Cincin">
+                        </div>
+                    </div>
+
+                    <!-- ROW 2 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="surat" class="required"><i class="fas fa-file-contract"></i> Surat</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-file-alt"></i>
+                                <select id="surat" name="surat" required>
+                                    <option value="">- Pilih Status Surat -</option>
+                                    <option value="ADA">ADA</option>
+                                    <option value="TIDAK ADA">TIDAK ADA</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="namaToko"><i class="fas fa-store-alt"></i> Nama Toko</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-store"></i>
+                                <input type="text" id="namaToko" name="namaToko" placeholder="Masukkan nama toko">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 3 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="kadarFisik"><i class="fas fa-percent"></i> Kadar Fisik</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-weight-scale"></i>
+                                <input type="number" id="kadarFisik" name="kadarFisik" placeholder="Kadar fisik emas">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="presentaseMesin" class="required"><i class="fas fa-cogs"></i> Presentase Mesin (%)</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-percentage"></i>
+                                <input type="number" id="presentaseMesin" name="presentaseMesin" required placeholder="Masukkan persentase" step="0.01" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 4 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="kadarMesin"><i class="fas fa-microchip"></i> Kadar Mesin</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-cogs"></i>
+                                <input type="number" id="kadarMesin" name="kadarMesin" readonly placeholder="Akan terisi otomatis">
+                            </div>
+                            <small class="tooltip">Otomatis: (Presentase Mesin / 100) * 24
+                                <span class="tooltip-text">Kadar mesin dihitung dari persentase mesin dikali 24 karat</span>
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="kodePabrik"><i class="fas fa-industry"></i> Kode Pabrik</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-industry"></i>
+                                <input type="text" id="kodePabrik" name="kodePabrik" placeholder="Kode pabrik pembuat">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 5 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="beratSurat"><i class="fas fa-weight-hanging"></i> Berat Surat (gram)</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-file-signature"></i>
+                                <input type="number" id="beratSurat" name="beratSurat" step="0.01" placeholder="Berat sesuai surat">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="beratFisik" class="required"><i class="fas fa-weight"></i> Berat Fisik (gram)</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-weight-hanging"></i>
+                                <input type="number" id="beratFisik" name="beratFisik" step="0.01" required placeholder="Berat fisik sebenarnya">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 6 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="susut" class="required"><i class="fas fa-minus-circle"></i> Susut (gram)</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-minus"></i>
+                                <input type="number" id="susut" name="susut" step="0.01" required placeholder="Nilai susut">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="beratTerima"><i class="fas fa-balance-scale"></i> Berat Terima (gram)</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-weight-hanging"></i>
+                                <input type="number" id="beratTerima" name="beratTerima" step="0.01" readonly placeholder="Akan terisi otomatis">
+                            </div>
+                            <small class="tooltip">Otomatis: Berat terkecil (surat/fisik) - susut
+                                <span class="tooltip-text">Jika berat surat &lt; berat fisik: (berat surat - susut)<br>Jika berat fisik &lt; berat surat: (berat fisik - susut)</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- ROW 7 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="kondisiPerhiasan" class="required"><i class="fas fa-gem"></i> Kondisi Perhiasan</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-gem"></i>
+                                <select id="kondisiPerhiasan" name="kondisiPerhiasan" required>
+                                    <option value="">- Pilih Kondisi -</option>
+                                    <option value="NORMAL">NORMAL</option>
+                                    <option value="RUSAK">RUSAK</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="model" class="required"><i class="fas fa-shapes"></i> Model</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-shapes"></i>
+                                <select id="model" name="model" required>
+                                    <option value="">- Pilih Model -</option>
+                                    <option value="POLOS">POLOS</option>
+                                    <option value="BATU">BATU</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROW 8 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rateTerima" class="required"><i class="fas fa-chart-line"></i> Rate Terima</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-chart-line"></i>
+                                <input type="number" id="rateTerima" name="rateTerima" step="0.0001" required placeholder="Masukkan rate terima" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hargaPerGram"><i class="fas fa-money-bill"></i> Harga Per Gram (Rp)</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <input type="number" id="hargaPerGram" name="hargaPerGram" readonly placeholder="Akan terisi otomatis">
+                            </div>
+                            <small class="tooltip">Otomatis: Floor(Cokim Terima × Rate Terima, 500)
+                                <span class="tooltip-text">Dibulatkan ke bawah ke kelipatan 500 terdekat</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- HARGA TERIMA -->
+                    <div class="form-group">
+                        <label for="hargaTerima"><i class="fas fa-calculator"></i> Harga Terima (Rp)</label>
+                            <div class="input-with-icon">
+                            <i class="fas fa-money-check-alt"></i>
+                            <input type="number" id="hargaTerima" name="hargaTerima" readonly placeholder="Akan terisi otomatis">
+                        </div>
+                        <small class="tooltip">Otomatis: Floor(Harga Per Gram × Berat Terima, 500)
+                            <span class="tooltip-text">Dibulatkan ke bawah ke kelipatan 500 terdekat</span>
+                        </small>
+                    </div>
+
+                    <!-- BUTTONS -->
+                    <div class="button-group">
+                        <button type="button" id="resetBtn" class="btn btn-secondary">
+                            <i class="fas fa-redo-alt"></i> Reset Form
+                        </button>
+                        <button type="submit" id="submitBtn" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan & Cetak
+                        </button>
+                        <button type="button" id="testPrintBtn" class="btn test-print-btn">
+                            <i class="fas fa-print"></i> Test Cetak
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- PREVIEW SECTION -->
+            <section class="preview-section">
+                <h2 class="section-title"><i class="fas fa-eye"></i> Preview Data</h2>
+                <div class="preview-box">
+                    <div id="previewContent">
+                        <p class="preview-placeholder">Form belum diisi. Data akan muncul di sini setelah diisi.</p>
+                    </div>
+                </div>
+
+                <!-- STATISTICS -->
+                <div class="stats-box" id="statsBox">
+                    <div class="stats-title"><i class="fas fa-chart-bar"></i> Statistik Transaksi</div>
+                    <div class="stats-content">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalTransaksi">0</div>
+                            <div class="stat-label">Total Data</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="lastId">-</div>
+                            <div class="stat-label">ID Terakhir</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="todayCount">0</div>
+                            <div class="stat-label">Hari Ini</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRINT BUTTON -->
+                <div class="preview-actions">
+                    <button type="button" id="printPreviewBtn" class="btn btn-danger" disabled>
+                        <i class="fas fa-print"></i> Cetak Sekarang
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- PRINT AREA (HIDDEN) -->
+        <div id="printArea" style="display: none">
+            <div class="thermal-report" id="thermalReport"></div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            <p><strong>FORM CEK EMAS UBER - Sistem Digital Penerimaan Emas</strong></p>
+            <p>© 2023 - <span id="currentYear"></span> | Versi 2.0 | Terhubung ke: 
+                <a href="https://docs.google.com/spreadsheets/d/1Sad_KJ2PCnrHBFtECE2qOYh45hjEffFMuvlO3MCeC90/edit?usp=sharing" target="_blank">Google Spreadsheet</a>
+            </p>
+            <p>Untuk bantuan teknis, hubungi: <a href="mailto:support@uberemas.com">support@uberemas.com</a></p>
+        </footer>
+
+        <!-- LOADING OVERLAY -->
+        <div class="loading" id="loadingOverlay">
+            <div class="spinner"></div>
+            <h3>Menyimpan Data ke Spreadsheet...</h3>
+            <p id="loadingMessage">Mohon tunggu sebentar</p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // ==============================
+        // KONFIGURASI SISTEM
+        // ==============================
+        const CONFIG = {
+            SPREADSHEET_URL: "https://docs.google.com/spreadsheets/d/1Sad_KJ2PCnrHBFtECE2qOYh45hjEffFMuvlO3MCeC90/edit?usp=sharing",
+            WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwGe0bZiJ2GCFaNuqDTHjQgJt9bvgsV8kPmQkwMekCzpvBLzAZ2Hk9x7_qpvbLU7bddXQ/exec",
+            SITE_URL: "https://notaluaruber.netlify.app/",
+            VERSION: "2.0"
+        };
+
+        // ==============================
+        // VARIABEL GLOBAL
+        // ==============================
+        let lastTransactionId = "NOTLU-0000";
+        let totalTransactions = 0;
+        let todayTransactions = 0;
+
+        // ==============================
+        // FUNGSI UTAMA
+        // ==============================
+
+        // Fungsi untuk generate ID transaksi
+        function generateTransactionId() {
+            const lastNumber = parseInt(lastTransactionId.split("-")[1]) || 0;
+            const newNumber = lastNumber + 1;
+            return `NOTLU-${newNumber.toString().padStart(4, "0")}`;
+        }
+
+        // Fungsi untuk menghitung kadar mesin
+        function calculateKadarMesin() {
+            const presentaseMesin = parseFloat(document.getElementById("presentaseMesin").value) || 0;
+            const kadarMesin = (presentaseMesin / 100) * 24;
+            document.getElementById("kadarMesin").value = kadarMesin.toFixed(2);
+            return kadarMesin;
+        }
+
+        // Fungsi untuk menghitung berat terima
+        function calculateBeratTerima() {
+            const beratSurat = parseFloat(document.getElementById("beratSurat").value) || 0;
+            const beratFisik = parseFloat(document.getElementById("beratFisik").value) || 0;
+            const susut = parseFloat(document.getElementById("susut").value) || 0;
+
+            let beratTerima;
+            if (beratSurat > 0 && beratSurat < beratFisik) {
+                beratTerima = beratSurat - susut;
+            } else {
+                beratTerima = beratFisik - susut;
+            }
+
+            beratTerima = Math.max(beratTerima, 0);
+            document.getElementById("beratTerima").value = beratTerima.toFixed(2);
+            return beratTerima;
+        }
+
+        // Fungsi untuk menghitung harga per gram
+        function calculateHargaPerGram() {
+            const cokimTerima = parseFloat(document.getElementById("cokimTerima").value) || 0;
+            const rateTerima = parseFloat(document.getElementById("rateTerima").value) || 0;
+            const hargaPerGram = Math.floor((cokimTerima * (rateTerima / 100)) / 500) * 500;
+            document.getElementById("hargaPerGram").value = hargaPerGram;
+            return hargaPerGram;
+        }
+
+        // Fungsi untuk menghitung harga terima
+        function calculateHargaTerima() {
+            const hargaPerGram = parseFloat(document.getElementById("hargaPerGram").value) || 0;
+            const beratTerima = parseFloat(document.getElementById("beratTerima").value) || 0;
+            const hargaTerima = Math.floor((hargaPerGram * beratTerima) / 500) * 500;
+            document.getElementById("hargaTerima").value = hargaTerima;
+            return hargaTerima;
+        }
+
+        // Fungsi untuk update preview
+        function updatePreview() {
+            const formData = new FormData(document.getElementById("emasForm"));
+            const previewContent = document.getElementById("previewContent");
+
+            let hasData = false;
+            for (let value of formData.values()) {
+                if (value) {
+                    hasData = true;
+                    break;
+                }
+            }
+
+            if (!hasData) {
+                previewContent.innerHTML = '<p class="preview-placeholder">Form belum diisi. Data akan muncul di sini setelah diisi.</p>';
+                document.getElementById("printPreviewBtn").disabled = true;
+                return;
+            }
+
+            const transactionId = generateTransactionId();
+            let previewHTML = `
+                <div class="preview-header">
+                    <div class="preview-title">CEK EMAS UBER</div>
+                    <div class="preview-id">${transactionId}</div>
+                    <div style="margin-top: 10px; font-size: 14px; color: #666;">
+                        ${new Date().toLocaleDateString("id-ID", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric"
+                        })}
+                    </div>
+                </div>
+            `;
+
+            const fields = [
+                { label: "Kode Sales", value: formData.get("kodeSales"), icon: "fa-id-card" },
+                { label: "Cokim Terima", value: formData.get("cokimTerima") ? "Rp " + parseInt(formData.get("cokimTerima")).toLocaleString("id-ID") : "-", icon: "fa-money-bill-wave" },
+                { label: "Jenis Barang", value: formData.get("jenisBarang"), icon: "fa-box-open" },
+                { label: "Surat", value: formData.get("surat"), icon: "fa-file-contract" },
+                { label: "Nama Toko", value: formData.get("namaToko") || "-", icon: "fa-store-alt" },
+                { label: "Kadar Fisik", value: formData.get("kadarFisik") || "-", icon: "fa-percent" },
+                { label: "Presentase Mesin", value: formData.get("presentaseMesin") ? formData.get("presentaseMesin") + "%" : "-", icon: "fa-cogs" },
+                { label: "Kadar Mesin", value: document.getElementById("kadarMesin").value || "-", icon: "fa-microchip" },
+                { label: "Kode Pabrik", value: formData.get("kodePabrik") || "-", icon: "fa-industry" },
+                { label: "Berat Surat", value: formData.get("beratSurat") ? formData.get("beratSurat") + " gram" : "-", icon: "fa-weight-hanging" },
+                { label: "Berat Fisik", value: formData.get("beratFisik") ? formData.get("beratFisik") + " gram" : "-", icon: "fa-weight" },
+                { label: "Susut", value: formData.get("susut") ? formData.get("susut") + " gram" : "-", icon: "fa-minus-circle" },
+                { label: "Berat Terima", value: document.getElementById("beratTerima").value ? document.getElementById("beratTerima").value + " gram" : "-", icon: "fa-balance-scale" },
+                { label: "Kondisi Perhiasan", value: formData.get("kondisiPerhiasan"), icon: "fa-gem" },
+                { label: "Model", value: formData.get("model"), icon: "fa-shapes" },
+                { label: "Rate Terima", value: formData.get("rateTerima"), icon: "fa-chart-line" },
+                { label: "Harga Per Gram", value: document.getElementById("hargaPerGram").value ? "Rp " + parseInt(document.getElementById("hargaPerGram").value).toLocaleString("id-ID") : "-", icon: "fa-money-bill" },
+                { label: "Harga Terima", value: document.getElementById("hargaTerima").value ? "Rp " + parseInt(document.getElementById("hargaTerima").value).toLocaleString("id-ID") : "-", icon: "fa-calculator" }
+            ];
+
+            fields.forEach((field) => {
+                if (field.value && field.value !== "-") {
+                    previewHTML += `
+                        <div class="preview-item">
+                            <span class="preview-label"><i class="fas ${field.icon}"></i> ${field.label}:</span>
+                            <span class="preview-value">${field.value}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            previewContent.innerHTML = previewHTML;
+            document.getElementById("printPreviewBtn").disabled = false;
+        }
+
+        // Fungsi untuk membuat laporan thermal (OPTIMIZED FOR 58MM WITH MODERN REPORT LAYOUT)
+        function createThermalReport(transactionId, formData) {
+            const thermalReport = document.getElementById("thermalReport");
+            const formatRupiah = (value) => {
+                if (!value) return "0";
+                return parseInt(value).toLocaleString("id-ID");
+            };
+
+            const formatDate = () => {
+                const now = new Date();
+                return now.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).toUpperCase();
+            };
+
+            // Modern report layout untuk thermal printer 58mm
+            const reportHTML = `
+                <div class="report-header">
+                    <div class="report-title">CEK EMAS UBER</div>
+                    <div class="report-subtitle">LAPORAN PENERIMAAN EMAS</div>
+                    <div>${transactionId}</div>
+                    <div>${formatDate()}</div>
+                </div>
+                
+                <div class="report-divider"></div>
+                
+                <div class="report-section">
+                    <div class="report-section-title">INFORMASI UMUM</div>
+                    <div class="report-line">
+                        <span class="report-label">KODE SALES</span>
+                        <span class="report-value">${formData.get("kodeSales") || "-"}</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">JENIS BARANG</span>
+                        <span class="report-value">${(formData.get("jenisBarang") || "-").toUpperCase()}</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">NAMA TOKO</span>
+                        <span class="report-value">${(formData.get("namaToko") || "-").toUpperCase()}</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">STATUS SURAT</span>
+                        <span class="report-value">${(formData.get("surat") || "-").toUpperCase()}</span>
+                    </div>
+                </div>
+                
+                <div class="report-divider"></div>
+                
+                <div class="report-section">
+                    <div class="report-section-title">SPESIFIKASI EMAS</div>
+                    <div class="report-grid">
+                        <div class="grid-item">
+                            <span>KADAR FISIK</span>
+                            <span>${formData.get("kadarFisik") || "-"}</span>
+                        </div>
+                        <div class="grid-item">
+                            <span>% MESIN</span>
+                            <span>${formData.get("presentaseMesin") || "-"}%</span>
+                        </div>
+                        <div class="grid-item">
+                            <span>KADAR MESIN</span>
+                            <span>${document.getElementById("kadarMesin").value || "-"}</span>
+                        </div>
+                        <div class="grid-item">
+                            <span>KODE PABRIK</span>
+                            <span>${formData.get("kodePabrik") || "-"}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-divider"></div>
+                
+                <div class="report-section">
+                    <div class="report-section-title">BERAT & PENGUKURAN</div>
+                    <div class="report-line">
+                        <span class="report-label">BERAT SURAT</span>
+                        <span class="report-value">${formData.get("beratSurat") || "0.00"} g</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">BERAT FISIK</span>
+                        <span class="report-value">${formData.get("beratFisik") || "0.00"} g</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">SUSUT</span>
+                        <span class="report-value">${formData.get("susut") || "0.00"} g</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">BERAT TERIMA</span>
+                        <span class="report-value">${document.getElementById("beratTerima").value || "0.00"} g</span>
+                    </div>
+                </div>
+                
+                <div class="report-divider"></div>
+                
+                <div class="report-section">
+                    <div class="report-section-title">KONDISI & MODEL</div>
+                    <div class="report-grid">
+                        <div class="grid-item">
+                            <span>KONDISI</span>
+                            <span>${(formData.get("kondisiPerhiasan") || "-").toUpperCase()}</span>
+                        </div>
+                        <div class="grid-item">
+                            <span>MODEL</span>
+                            <span>${(formData.get("model") || "-").toUpperCase()}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-divider"></div>
+                
+                <div class="report-section">
+                    <div class="report-section-title">PERHITUNGAN HARGA</div>
+                    <div class="report-line">
+                        <span class="report-label">COKIM TERIMA</span>
+                        <span class="report-value">Rp ${formatRupiah(formData.get("cokimTerima"))}</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">RATE TERIMA</span>
+                        <span class="report-value">${formData.get("rateTerima") || "0"}%</span>
+                    </div>
+                    <div class="report-line">
+                        <span class="report-label">HARGA PER GRAM</span>
+                        <span class="report-value">Rp ${formatRupiah(document.getElementById("hargaPerGram").value)}</span>
+                    </div>
+                </div>
+                
+                <div class="report-divider"></div>
+                
+                <div class="report-total">
+                    <div class="report-line">
+                        <span class="report-label">TOTAL HARGA</span>
+                        <span class="report-value">Rp ${formatRupiah(document.getElementById("hargaTerima").value)}</span>
+                    </div>
+                </div>
+                
+                <div class="report-footer">
+                    <div>TERIMA KASIH ATAS KERJA SAMANYA</div>
+                    <div>WWW.CEK-EMAS-UBER.COM</div>
+                </div>
+            `;
+
+            thermalReport.innerHTML = reportHTML;
+        }
+
+        // Fungsi untuk mencetak laporan dengan kontrol kecepatan
+        function printThermalReport() {
+            const printArea = document.getElementById("printArea");
+            const thermalReport = document.getElementById("thermalReport");
+            
+            // Tampilkan area cetak
+            printArea.style.display = "block";
+            thermalReport.style.display = "block";
+
+            // Beri jeda untuk memastikan rendering selesai
+            setTimeout(() => {
+                // Optimasi untuk printer thermal - beri waktu antar baris
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @media print {
+                        .report-line, .report-divider, .report-section {
+                            animation: none !important;
+                            transition: none !important;
+                            print-color-adjust: exact !important;
+                            -webkit-print-color-adjust: exact !important;
+                        }
+                        
+                        /* Slow down print for better thermal printing */
+                        * {
+                            print-delay: 50ms !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Trigger print dengan delay untuk printer thermal
+                setTimeout(() => {
+                    window.print();
+                    
+                    // Kembalikan ke state semula
+                    setTimeout(() => {
+                        printArea.style.display = "none";
+                        thermalReport.style.display = "none";
+                        document.head.removeChild(style);
+                    }, 500);
+                }, 300);
+            }, 200);
+        }
+
+        // Fungsi untuk test cetak
+        function testPrint() {
+            const formData = new FormData(document.getElementById("emasForm"));
+            let hasData = false;
+            
+            for (let value of formData.values()) {
+                if (value) {
+                    hasData = true;
+                    break;
+                }
+            }
+
+            if (!hasData) {
+                // Gunakan data contoh untuk test print
+                const testFormData = new FormData();
+                testFormData.set("kodeSales", "12345");
+                testFormData.set("cokimTerima", "850000");
+                testFormData.set("jenisBarang", "Gelang Emas");
+                testFormData.set("surat", "ADA");
+                testFormData.set("namaToko", "Toko Emas Mulia");
+                testFormData.set("kadarFisik", "22");
+                testFormData.set("presentaseMesin", "91.67");
+                testFormData.set("beratSurat", "5.2");
+                testFormData.set("beratFisik", "5.1");
+                testFormData.set("susut", "0.1");
+                testFormData.set("kondisiPerhiasan", "NORMAL");
+                testFormData.set("model", "POLOS");
+                testFormData.set("rateTerima", "98.5");
+                testFormData.set("kodePabrik", "PG001");
+                
+                document.getElementById("kadarMesin").value = "22.00";
+                document.getElementById("beratTerima").value = "5.00";
+                document.getElementById("hargaPerGram").value = "836500";
+                document.getElementById("hargaTerima").value = "4182500";
+                
+                const testId = generateTransactionId();
+                createThermalReport(testId, testFormData);
+                printThermalReport();
+                showStatus("Test cetak dengan data contoh berhasil!", true);
+                return;
+            }
+
+            const transactionId = generateTransactionId();
+            createThermalReport(transactionId, formData);
+            printThermalReport();
+            showStatus("Test cetak berhasil!", true);
+        }
+
+        // Fungsi untuk menyimpan ke spreadsheet
+        async function saveToSpreadsheet(formData, transactionId) {
+            const dataToSend = {
+                transactionId: transactionId,
+                kodeSales: formData.get("kodeSales"),
+                cokimTerima: formData.get("cokimTerima"),
+                jenisBarang: formData.get("jenisBarang"),
+                surat: formData.get("surat"),
+                namaToko: formData.get("namaToko") || "",
+                kadarFisik: formData.get("kadarFisik") || 0,
+                presentaseMesin: formData.get("presentaseMesin"),
+                kadarMesin: document.getElementById("kadarMesin").value || 0,
+                kodePabrik: formData.get("kodePabrik") || "",
+                beratSurat: formData.get("beratSurat") || 0,
+                beratFisik: formData.get("beratFisik"),
+                susut: formData.get("susut"),
+                beratTerima: document.getElementById("beratTerima").value,
+                kondisiPerhiasan: formData.get("kondisiPerhiasan"),
+                model: formData.get("model"),
+                rateTerima: formData.get("rateTerima"),
+                hargaPerGram: document.getElementById("hargaPerGram").value,
+                hargaTerima: document.getElementById("hargaTerima").value,
+                operator: "Operator",
+                timestamp: new Date().toISOString()
+            };
+
+            console.log("Mengirim data:", dataToSend);
+
+            try {
+                const response = await fetch(CONFIG.WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                saveBackup(dataToSend);
+                
+                return {
+                    success: true,
+                    message: "Data berhasil dikirim ke spreadsheet",
+                    transactionId: transactionId
+                };
+
+            } catch (error) {
+                console.error("Error:", error);
+                saveBackup(dataToSend);
+                throw new Error("Gagal mengirim data: " + error.message);
+            }
+        }
+
+        // Fungsi untuk menyimpan backup
+        function saveBackup(data) {
+            try {
+                const backupKey = `backup_${data.transactionId}_${Date.now()}`;
+                localStorage.setItem(backupKey, JSON.stringify({
+                    ...data,
+                    backupTime: new Date().toISOString(),
+                    status: "pending"
+                }));
+                
+                const backupList = JSON.parse(localStorage.getItem('backup_list') || '[]');
+                backupList.push(backupKey);
+                localStorage.setItem('backup_list', JSON.stringify(backupList));
+                
+                console.log("Data disimpan sebagai backup:", backupKey);
+            } catch (error) {
+                console.error("Gagal menyimpan backup:", error);
+            }
+        }
+
+        // Fungsi untuk mengambil statistik
+        async function fetchStatistics() {
+            try {
+                const response = await fetch(`${CONFIG.WEB_APP_URL}?t=${Date.now()}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        lastTransactionId = data.lastId;
+                        totalTransactions = data.count || 0;
+                        todayTransactions = data.todayCount || 0;
+
+                        document.getElementById("totalTransaksi").textContent = totalTransactions;
+                        document.getElementById("lastId").textContent = lastTransactionId;
+                        document.getElementById("todayCount").textContent = todayTransactions;
+                        document.getElementById("statsBox").style.display = "block";
+                        
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.log("Tidak dapat mengambil statistik:", error);
+                return false;
+            }
+        }
+
+        // Fungsi untuk menampilkan status
+        function showStatus(message, isSuccess = true, duration = 5000) {
+            const statusIndicator = document.getElementById("statusIndicator");
+            const statusMessage = document.getElementById("statusMessage");
+
+            statusIndicator.className = `status-indicator ${isSuccess ? "status-success" : "status-error"}`;
+            statusMessage.innerHTML = `<i class="fas ${isSuccess ? "fa-check-circle" : "fa-exclamation-circle"}"></i> ${message}`;
+            statusIndicator.style.display = "flex";
+
+            setTimeout(() => {
+                statusIndicator.style.display = "none";
+            }, duration);
+        }
+
+        // Fungsi untuk mereset form
+        function resetForm() {
+            document.getElementById("emasForm").reset();
+            document.getElementById("kadarMesin").value = "";
+            document.getElementById("beratTerima").value = "";
+            document.getElementById("hargaPerGram").value = "";
+            document.getElementById("hargaTerima").value = "";
+
+            document.getElementById("previewContent").innerHTML = '<p class="preview-placeholder">Form belum diisi. Data akan muncul di sini setelah diisi.</p>';
+            document.getElementById("printPreviewBtn").disabled = true;
+
+            showStatus("Form telah direset. Silakan isi data baru.", true, 3000);
+        }
+
+        // Fungsi untuk update loading message
+        function updateLoadingMessage(message) {
+            document.getElementById("loadingMessage").textContent = message;
+        }
+
+        // ==============================
+        // EVENT LISTENERS
+        // ==============================
+        document.addEventListener("DOMContentLoaded", function () {
+            // Set tahun di footer
+            document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+            // Event listener untuk input perhitungan
+            const calculationInputs = ["presentaseMesin", "beratSurat", "beratFisik", "susut", "cokimTerima", "rateTerima"];
+            calculationInputs.forEach((inputId) => {
+                document.getElementById(inputId).addEventListener("input", function () {
+                    calculateKadarMesin();
+                    calculateBeratTerima();
+                    calculateHargaPerGram();
+                    calculateHargaTerima();
+                    updatePreview();
+                });
+            });
+
+            // Event listener untuk input lainnya
+            const formInputs = document.querySelectorAll("#emasForm input, #emasForm select");
+            formInputs.forEach((input) => {
+                if (!calculationInputs.includes(input.id)) {
+                    input.addEventListener("input", updatePreview);
+                }
+            });
+
+            // Event listener untuk reset button
+            document.getElementById("resetBtn").addEventListener("click", resetForm);
+
+            // Event listener untuk test print button
+            document.getElementById("testPrintBtn").addEventListener("click", testPrint);
+
+            // Event listener untuk print preview button
+            document.getElementById("printPreviewBtn").addEventListener("click", function () {
+                const formData = new FormData(document.getElementById("emasForm"));
+                const transactionId = generateTransactionId();
+                createThermalReport(transactionId, formData);
+                printThermalReport();
+            });
+
+            // Event listener untuk form submission
+            document.getElementById("emasForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    showStatus("Harap lengkapi semua field yang wajib diisi!", false);
+                    return;
+                }
+
+                const beratFisik = parseFloat(document.getElementById("beratFisik").value);
+                const susut = parseFloat(document.getElementById("susut").value);
+
+                if (susut >= beratFisik) {
+                    showStatus("Nilai susut tidak boleh lebih besar atau sama dengan berat fisik!", false);
+                    return;
+                }
+
+                // Tampilkan loading
+                document.getElementById("loadingOverlay").classList.add("show");
+                updateLoadingMessage("Mempersiapkan data...");
+
+                try {
+                    const formData = new FormData(this);
+                    const transactionId = generateTransactionId();
+
+                    updateLoadingMessage("Menyimpan data ke spreadsheet...");
+
+                    // Simpan ke spreadsheet
+                    const result = await saveToSpreadsheet(formData, transactionId);
+
+                    updateLoadingMessage("Data berhasil disimpan. Mempersiapkan cetakan...");
+
+                    // Buat dan cetak laporan dengan kecepatan optimal
+                    setTimeout(() => {
+                        createThermalReport(transactionId, formData);
+                        printThermalReport();
+
+                        updateLoadingMessage("Mereset form untuk data baru...");
+
+                        // Reset form
+                        setTimeout(() => {
+                            resetForm();
+                            document.getElementById("loadingOverlay").classList.remove("show");
+
+                            // Update statistik
+                            fetchStatistics();
+
+                            showStatus(`Data berhasil disimpan dengan ID: <strong>${transactionId}</strong>`, true, 6000);
+                        }, 1500);
+                    }, 2000);
+                } catch (error) {
+                    console.error("Error:", error);
+                    document.getElementById("loadingOverlay").classList.remove("show");
+                    showStatus(`Gagal menyimpan data: ${error.message}`, false, 8000);
+                }
+            });
+
+            // Ambil statistik awal
+            fetchStatistics();
+
+            // Inisialisasi preview
+            updatePreview();
+
+            // Tampilkan info koneksi
+            setTimeout(() => {
+                fetchStatistics().then(success => {
+                    if (success) {
+                        showStatus("Sistem siap digunakan. Terhubung ke Google Spreadsheet.", true, 4000);
+                        document.getElementById("connectionText").textContent = "Terhubung ke Spreadsheet";
+                    } else {
+                        showStatus("Tidak dapat terhubung ke spreadsheet, menggunakan mode offline", false, 5000);
+                        document.getElementById("connectionText").textContent = "Mode Offline";
+                    }
+                });
+            }, 1000);
+
+            // Log informasi sistem
+            console.log(`FORM CEK EMAS UBER v${CONFIG.VERSION}`);
+            console.log(`Spreadsheet: ${CONFIG.SPREADSHEET_URL}`);
+            console.log(`Web App: ${CONFIG.WEB_APP_URL}`);
+            console.log("Sistem siap digunakan!");
+        });
+    </script>
+</body>
+</html>
