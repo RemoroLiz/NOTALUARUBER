@@ -132,7 +132,7 @@
         }
 
         /* ==============================
-           PRINT STYLES - UPDATED FOR 58MM THERMAL PRINTER WITH MODERN FONT
+           PRINT STYLES - UPDATED: FONT SIZE +2, SHIFT RIGHT 2PX
         ============================== */
         @media print {
             body * {
@@ -147,7 +147,7 @@
 
             #printArea {
                 position: fixed !important;
-                left: 0 !important;
+                left: 2px !important; /* Geser ke kanan 2px */
                 top: 0 !important;
                 width: 58mm !important;
                 height: auto !important;
@@ -165,17 +165,18 @@
             .thermal-report {
                 all: initial !important;
                 font-family: 'Courier Prime', 'Courier New', monospace !important;
-                font-size: 11pt !important;
+                font-size: 13pt !important; /* Naikkan 2 size dari 11pt ke 13pt */
                 font-weight: 900 !important;
                 width: 58mm !important;
                 margin: 0 auto !important;
-                padding: 1mm 2mm !important;
+                padding: 1mm 2mm 1mm 3mm !important; /* Tambah padding kiri */
                 line-height: 1.5 !important;
                 letter-spacing: 0.3px !important;
                 word-spacing: 0.5px !important;
                 text-rendering: optimizeLegibility !important;
                 -webkit-font-smoothing: antialiased !important;
                 -moz-osx-font-smoothing: grayscale !important;
+                box-sizing: border-box !important;
             }
 
             .thermal-report * {
@@ -191,7 +192,7 @@
                 box-sizing: border-box !important;
             }
 
-            /* Optimize print speed - ensure proper timing */
+            /* Optimize print speed */
             @page {
                 margin: 0 !important;
                 padding: 0 !important;
@@ -199,27 +200,32 @@
             }
 
             /* Add slight delay between print operations */
-            .receipt-line, .receipt-divider, .receipt-header, .receipt-footer {
+            .report-line, .report-divider, .report-header, .report-footer {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
 
             /* Ensure clear printing with proper spacing */
-            .receipt-line {
+            .report-line {
                 page-break-after: avoid !important;
                 break-after: avoid !important;
             }
+            
+            /* Garis pemisah yang lebih tebal */
+            .section-divider {
+                border-top: 3px solid #000 !important;
+            }
         }
 
-        /* Thermal Report Styles */
+        /* Thermal Report Styles - UPDATED */
         .thermal-report {
             display: none;
             font-family: 'Courier Prime', 'Courier New', monospace;
-            font-size: 11pt;
+            font-size: 13pt; /* Naikkan 2 size dari 11pt ke 13pt */
             font-weight: 900;
             width: 58mm;
             margin: 0 auto;
-            padding: 1mm 2mm;
+            padding: 1mm 2mm 1mm 3mm; /* Tambah padding kiri untuk geser ke kanan */
             line-height: 1.5;
             letter-spacing: 0.3px;
             word-spacing: 0.5px;
@@ -239,7 +245,7 @@
         }
 
         .report-title {
-            font-size: 13pt;
+            font-size: 15pt; /* Naikkan dari 13pt ke 15pt */
             font-weight: 900;
             margin-bottom: 2px;
             letter-spacing: 0.5px;
@@ -247,7 +253,7 @@
         }
 
         .report-subtitle {
-            font-size: 10pt;
+            font-size: 12pt; /* Naikkan dari 10pt ke 12pt */
             font-weight: 700;
             margin-bottom: 3px;
         }
@@ -257,10 +263,10 @@
             justify-content: space-between;
             margin-bottom: 3px;
             padding: 1px 0;
-            font-size: 11pt;
+            font-size: 13pt; /* Naikkan dari 11pt ke 13pt */
             font-weight: 900;
             letter-spacing: 0.2px;
-            min-height: 18px;
+            min-height: 20px; /* Tingkatkan min-height */
             align-items: center;
         }
 
@@ -271,6 +277,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            padding-left: 2px; /* Tambah padding kiri untuk geser ke kanan */
         }
 
         .report-value {
@@ -281,11 +288,21 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            padding-right: 2px; /* Tambah padding kanan untuk balance */
         }
 
+        /* GARIS PEMISAH YANG LEBIH TEBAL DAN JELAS */
         .report-divider {
             border-top: 2px solid #000;
-            margin: 4px 0;
+            margin: 6px 0; /* Tambah margin untuk lebih jelas */
+            height: 0;
+            clear: both;
+        }
+
+        /* GARIS PEMISAH KHUSUS UNTUK SECTION */
+        .section-divider {
+            border-top: 3px solid #000 !important; /* Lebih tebal dari garis biasa */
+            margin: 8px 0 !important; /* Lebih banyak ruang */
             height: 0;
             clear: both;
         }
@@ -298,26 +315,28 @@
         .report-section-title {
             font-weight: 900;
             text-align: center;
-            margin: 3px 0;
-            font-size: 11pt;
+            margin: 4px 0; /* Tambah margin */
+            font-size: 13pt; /* Naikkan dari 11pt ke 13pt */
             letter-spacing: 0.4px;
+            background-color: #f0f0f0; /* Background untuk highlight */
+            padding: 2px 0;
         }
 
         .report-total {
             font-weight: 900;
-            font-size: 12pt;
+            font-size: 14pt; /* Naikkan dari 12pt ke 14pt */
             letter-spacing: 0.6px;
-            margin-top: 4px;
-            padding-top: 3px;
-            border-top: 2px dashed #000;
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 3px dashed #000; /* Dash lebih tebal */
         }
 
         .report-footer {
             text-align: center;
-            margin-top: 6px;
-            padding-top: 4px;
+            margin-top: 8px;
+            padding-top: 5px;
             border-top: 1px solid #000;
-            font-size: 9pt;
+            font-size: 11pt; /* Naikkan dari 9pt ke 11pt */
             font-weight: 700;
             letter-spacing: 0.2px;
         }
@@ -325,14 +344,15 @@
         .report-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2px;
-            margin: 3px 0;
+            gap: 3px; /* Tambah gap */
+            margin: 4px 0;
         }
 
         .grid-item {
             display: flex;
             justify-content: space-between;
-            padding: 1px 0;
+            padding: 2px 0; /* Tambah padding */
+            font-size: 12pt; /* Naikkan dari 10pt ke 12pt */
         }
 
         /* ==============================
@@ -1296,7 +1316,7 @@
             document.getElementById("printPreviewBtn").disabled = false;
         }
 
-        // Fungsi untuk membuat laporan thermal (OPTIMIZED FOR 58MM WITH MODERN REPORT LAYOUT)
+        // Fungsi untuk membuat laporan thermal dengan font lebih besar dan garis pemisah
         function createThermalReport(transactionId, formData) {
             const thermalReport = document.getElementById("thermalReport");
             const formatRupiah = (value) => {
@@ -1315,7 +1335,7 @@
                 }).toUpperCase();
             };
 
-            // Modern report layout untuk thermal printer 58mm
+            // Report layout dengan font lebih besar dan garis pemisah yang jelas
             const reportHTML = `
                 <div class="report-header">
                     <div class="report-title">CEK EMAS UBER</div>
@@ -1324,7 +1344,8 @@
                     <div>${formatDate()}</div>
                 </div>
                 
-                <div class="report-divider"></div>
+                <!-- GARIS PEMISAH: INFORMASI UMUM -->
+                <div class="section-divider"></div>
                 
                 <div class="report-section">
                     <div class="report-section-title">INFORMASI UMUM</div>
@@ -1346,7 +1367,8 @@
                     </div>
                 </div>
                 
-                <div class="report-divider"></div>
+                <!-- GARIS PEMISAH: SPESIFIKASI EMAS -->
+                <div class="section-divider"></div>
                 
                 <div class="report-section">
                     <div class="report-section-title">SPESIFIKASI EMAS</div>
@@ -1370,10 +1392,11 @@
                     </div>
                 </div>
                 
-                <div class="report-divider"></div>
+                <!-- GARIS PEMISAH: BERAT & UKURAN -->
+                <div class="section-divider"></div>
                 
                 <div class="report-section">
-                    <div class="report-section-title">BERAT & PENGUKURAN</div>
+                    <div class="report-section-title">BERAT & UKURAN</div>
                     <div class="report-line">
                         <span class="report-label">BERAT SURAT</span>
                         <span class="report-value">${formData.get("beratSurat") || "0.00"} g</span>
@@ -1392,7 +1415,8 @@
                     </div>
                 </div>
                 
-                <div class="report-divider"></div>
+                <!-- GARIS PEMISAH: KONDISI & MODEL -->
+                <div class="section-divider"></div>
                 
                 <div class="report-section">
                     <div class="report-section-title">KONDISI & MODEL</div>
@@ -1408,7 +1432,8 @@
                     </div>
                 </div>
                 
-                <div class="report-divider"></div>
+                <!-- GARIS PEMISAH: PERHITUNGAN HARGA -->
+                <div class="section-divider"></div>
                 
                 <div class="report-section">
                     <div class="report-section-title">PERHITUNGAN HARGA</div>
@@ -1426,7 +1451,8 @@
                     </div>
                 </div>
                 
-                <div class="report-divider"></div>
+                <!-- GARIS PEMISAH: TOTAL -->
+                <div class="section-divider"></div>
                 
                 <div class="report-total">
                     <div class="report-line">
@@ -1444,7 +1470,7 @@
             thermalReport.innerHTML = reportHTML;
         }
 
-        // Fungsi untuk mencetak laporan dengan kontrol kecepatan
+        // Fungsi untuk mencetak laporan
         function printThermalReport() {
             const printArea = document.getElementById("printArea");
             const thermalReport = document.getElementById("thermalReport");
@@ -1455,11 +1481,11 @@
 
             // Beri jeda untuk memastikan rendering selesai
             setTimeout(() => {
-                // Optimasi untuk printer thermal - beri waktu antar baris
+                // Optimasi untuk printer thermal
                 const style = document.createElement('style');
                 style.innerHTML = `
                     @media print {
-                        .report-line, .report-divider, .report-section {
+                        .report-line, .report-divider, .report-section, .section-divider {
                             animation: none !important;
                             transition: none !important;
                             print-color-adjust: exact !important;
@@ -1469,6 +1495,11 @@
                         /* Slow down print for better thermal printing */
                         * {
                             print-delay: 50ms !important;
+                        }
+                        
+                        /* Pastikan garis pemisah tercetak dengan baik */
+                        .section-divider {
+                            border-top: 3px solid #000 !important;
                         }
                     }
                 `;
