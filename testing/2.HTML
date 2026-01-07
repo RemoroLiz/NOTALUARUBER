@@ -132,7 +132,7 @@
         }
 
         /* ==============================
-           PRINT STYLES - UPDATED FOR 58MM THERMAL PRINTER WITH MODERN FONT
+           PRINT STYLES - UPDATED WITH RIGHT PADDING
         ============================== */
         @media print {
             body * {
@@ -156,6 +156,7 @@
                 padding: 0 !important;
                 z-index: 99999 !important;
                 font-family: 'Courier Prime', 'Courier New', monospace !important;
+                transform: translateX(2mm) !important; /* Geser ke kanan */
             }
 
             .no-print {
@@ -167,15 +168,18 @@
                 font-family: 'Courier Prime', 'Courier New', monospace !important;
                 font-size: 11pt !important;
                 font-weight: 900 !important;
-                width: 58mm !important;
+                width: 54mm !important; /* Kurangi lebar untuk memberi ruang padding */
                 margin: 0 auto !important;
-                padding: 1mm 2mm !important;
+                padding: 1mm 2mm 1mm 3mm !important; /* Tambah padding kiri lebih banyak */
                 line-height: 1.5 !important;
                 letter-spacing: 0.3px !important;
                 word-spacing: 0.5px !important;
                 text-rendering: optimizeLegibility !important;
                 -webkit-font-smoothing: antialiased !important;
                 -moz-osx-font-smoothing: grayscale !important;
+                box-sizing: border-box !important;
+                position: relative !important;
+                left: 1mm !important; /* Geser sedikit ke kanan */
             }
 
             .thermal-report * {
@@ -186,16 +190,17 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 line-height: inherit !important;
-                max-width: 58mm !important;
+                max-width: 52mm !important; /* Kurangi max width */
                 overflow: hidden !important;
                 box-sizing: border-box !important;
             }
 
             /* Optimize print speed - ensure proper timing */
             @page {
-                margin: 0 !important;
+                margin: 2mm 1mm 2mm 3mm !important; /* Margin kiri lebih besar */
                 padding: 0 !important;
                 size: 58mm auto !important;
+                margin-left: 3mm !important; /* Tambah margin kiri */
             }
 
             /* Add slight delay between print operations */
@@ -209,17 +214,24 @@
                 page-break-after: avoid !important;
                 break-after: avoid !important;
             }
+            
+            /* Prevent cutting */
+            .thermal-report > * {
+                max-width: 52mm !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
         }
 
-        /* Thermal Report Styles */
+        /* Thermal Report Styles - UPDATED WITH PADDING */
         .thermal-report {
             display: none;
             font-family: 'Courier Prime', 'Courier New', monospace;
             font-size: 11pt;
             font-weight: 900;
-            width: 58mm;
+            width: 54mm; /* Kurangi width untuk padding */
             margin: 0 auto;
-            padding: 1mm 2mm;
+            padding: 1mm 2mm 1mm 3mm; /* Padding kiri lebih besar */
             line-height: 1.5;
             letter-spacing: 0.3px;
             word-spacing: 0.5px;
@@ -228,6 +240,9 @@
             -moz-osx-font-smoothing: grayscale;
             background: white;
             box-sizing: border-box;
+            position: relative;
+            left: 1mm; /* Geser ke kanan */
+            border: 1px dashed #ccc; /* Border untuk debugging */
         }
 
         .report-header {
@@ -236,6 +251,8 @@
             padding-bottom: 4px;
             margin-bottom: 4px;
             page-break-after: avoid;
+            padding-left: 0;
+            padding-right: 0;
         }
 
         .report-title {
@@ -244,12 +261,14 @@
             margin-bottom: 2px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            padding: 0 1mm; /* Tambah padding horizontal */
         }
 
         .report-subtitle {
             font-size: 10pt;
             font-weight: 700;
             margin-bottom: 3px;
+            padding: 0 1mm;
         }
 
         .report-line {
@@ -262,25 +281,29 @@
             letter-spacing: 0.2px;
             min-height: 18px;
             align-items: center;
+            padding-left: 0;
+            padding-right: 0;
         }
 
         .report-label {
             font-weight: 900;
             flex-shrink: 0;
-            width: 45%;
+            width: 48%; /* Lebarkan sedikit label */
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            padding-right: 1mm; /* Spasi antara label dan value */
         }
 
         .report-value {
             font-weight: 900;
             flex-shrink: 0;
-            width: 53%;
+            width: 50%; /* Kurangi width value */
             text-align: right;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            padding-left: 1mm; /* Spasi antara label dan value */
         }
 
         .report-divider {
@@ -288,6 +311,7 @@
             margin: 4px 0;
             height: 0;
             clear: both;
+            width: 100%;
         }
 
         .report-section {
@@ -301,6 +325,7 @@
             margin: 3px 0;
             font-size: 11pt;
             letter-spacing: 0.4px;
+            padding: 0 1mm;
         }
 
         .report-total {
@@ -320,6 +345,7 @@
             font-size: 9pt;
             font-weight: 700;
             letter-spacing: 0.2px;
+            padding: 0 1mm;
         }
 
         .report-grid {
@@ -327,12 +353,40 @@
             grid-template-columns: 1fr 1fr;
             gap: 2px;
             margin: 3px 0;
+            padding: 0 1mm;
         }
 
         .grid-item {
             display: flex;
             justify-content: space-between;
             padding: 1px 0;
+            font-size: 10pt;
+        }
+
+        .grid-item span:first-child {
+            padding-right: 2mm;
+        }
+
+        .grid-item span:last-child {
+            text-align: right;
+            min-width: 15mm;
+        }
+
+        /* Additional padding classes */
+        .padding-left {
+            padding-left: 2mm !important;
+        }
+
+        .padding-right {
+            padding-right: 2mm !important;
+        }
+
+        /* Print container untuk alignment */
+        .print-container {
+            width: 58mm;
+            margin: 0 auto;
+            padding-left: 2mm; /* Padding ke kanan */
+            box-sizing: border-box;
         }
 
         /* ==============================
@@ -831,10 +885,14 @@
         }
 
         /* ==============================
-           PRINT AREA (HIDDEN)
+           PRINT AREA (HIDDEN) - UPDATED
         ============================== */
         .print-area {
             display: none;
+            width: 58mm;
+            margin: 0 auto;
+            padding-left: 2mm; /* Padding untuk geser ke kanan */
+            box-sizing: border-box;
         }
 
         /* ==============================
@@ -852,11 +910,26 @@
                 animation: none !important;
                 transition: none !important;
             }
+            
+            /* Force left padding/margin */
+            body {
+                margin-left: 3mm !important;
+            }
+            
+            /* Additional right shift */
+            #printArea {
+                margin-left: 2mm !important;
+            }
         }
 
         /* Print speed control */
         .print-slow {
             print-delay: 100ms !important;
+        }
+        
+        /* Debug border untuk melihat batas */
+        .debug-border {
+            border: 1px solid red !important;
         }
     </style>
     <!-- Load Courier Prime font for better thermal print quality -->
@@ -1068,7 +1141,7 @@
                     <!-- HARGA TERIMA -->
                     <div class="form-group">
                         <label for="hargaTerima"><i class="fas fa-calculator"></i> Harga Terima (Rp)</label>
-                            <div class="input-with-icon">
+                        <div class="input-with-icon">
                             <i class="fas fa-money-check-alt"></i>
                             <input type="number" id="hargaTerima" name="hargaTerima" readonly placeholder="Akan terisi otomatis">
                         </div>
@@ -1129,8 +1202,8 @@
             </section>
         </div>
 
-        <!-- PRINT AREA (HIDDEN) -->
-        <div id="printArea" style="display: none">
+        <!-- PRINT AREA (HIDDEN) - UPDATED WITH PADDING -->
+        <div id="printArea" class="print-area" style="display: none">
             <div class="thermal-report" id="thermalReport"></div>
         </div>
 
@@ -1296,7 +1369,7 @@
             document.getElementById("printPreviewBtn").disabled = false;
         }
 
-        // Fungsi untuk membuat laporan thermal (OPTIMIZED FOR 58MM WITH MODERN REPORT LAYOUT)
+        // Fungsi untuk membuat laporan thermal dengan padding yang tepat
         function createThermalReport(transactionId, formData) {
             const thermalReport = document.getElementById("thermalReport");
             const formatRupiah = (value) => {
@@ -1315,41 +1388,41 @@
                 }).toUpperCase();
             };
 
-            // Modern report layout untuk thermal printer 58mm
+            // Modern report layout dengan padding yang tepat
             const reportHTML = `
                 <div class="report-header">
-                    <div class="report-title">CEK EMAS UBER</div>
-                    <div class="report-subtitle">LAPORAN PENERIMAAN EMAS</div>
-                    <div>${transactionId}</div>
-                    <div>${formatDate()}</div>
+                    <div class="report-title padding-left padding-right">CEK EMAS UBER</div>
+                    <div class="report-subtitle padding-left padding-right">LAPORAN PENERIMAAN EMAS</div>
+                    <div class="padding-left padding-right">${transactionId}</div>
+                    <div class="padding-left padding-right">${formatDate()}</div>
                 </div>
                 
                 <div class="report-divider"></div>
                 
                 <div class="report-section">
-                    <div class="report-section-title">INFORMASI UMUM</div>
+                    <div class="report-section-title padding-left padding-right">INFORMASI UMUM</div>
                     <div class="report-line">
-                        <span class="report-label">KODE SALES</span>
-                        <span class="report-value">${formData.get("kodeSales") || "-"}</span>
+                        <span class="report-label padding-left">KODE SALES</span>
+                        <span class="report-value padding-right">${formData.get("kodeSales") || "-"}</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">JENIS BARANG</span>
-                        <span class="report-value">${(formData.get("jenisBarang") || "-").toUpperCase()}</span>
+                        <span class="report-label padding-left">JENIS BARANG</span>
+                        <span class="report-value padding-right">${(formData.get("jenisBarang") || "-").toUpperCase().substring(0, 15)}</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">NAMA TOKO</span>
-                        <span class="report-value">${(formData.get("namaToko") || "-").toUpperCase()}</span>
+                        <span class="report-label padding-left">NAMA TOKO</span>
+                        <span class="report-value padding-right">${(formData.get("namaToko") || "-").toUpperCase().substring(0, 15)}</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">STATUS SURAT</span>
-                        <span class="report-value">${(formData.get("surat") || "-").toUpperCase()}</span>
+                        <span class="report-label padding-left">STATUS SURAT</span>
+                        <span class="report-value padding-right">${(formData.get("surat") || "-").toUpperCase()}</span>
                     </div>
                 </div>
                 
                 <div class="report-divider"></div>
                 
                 <div class="report-section">
-                    <div class="report-section-title">SPESIFIKASI EMAS</div>
+                    <div class="report-section-title padding-left padding-right">SPESIFIKASI EMAS</div>
                     <div class="report-grid">
                         <div class="grid-item">
                             <span>KADAR FISIK</span>
@@ -1373,29 +1446,29 @@
                 <div class="report-divider"></div>
                 
                 <div class="report-section">
-                    <div class="report-section-title">BERAT & PENGUKURAN</div>
+                    <div class="report-section-title padding-left padding-right">BERAT & PENGUKURAN</div>
                     <div class="report-line">
-                        <span class="report-label">BERAT SURAT</span>
-                        <span class="report-value">${formData.get("beratSurat") || "0.00"} g</span>
+                        <span class="report-label padding-left">BERAT SURAT</span>
+                        <span class="report-value padding-right">${formData.get("beratSurat") || "0.00"} g</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">BERAT FISIK</span>
-                        <span class="report-value">${formData.get("beratFisik") || "0.00"} g</span>
+                        <span class="report-label padding-left">BERAT FISIK</span>
+                        <span class="report-value padding-right">${formData.get("beratFisik") || "0.00"} g</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">SUSUT</span>
-                        <span class="report-value">${formData.get("susut") || "0.00"} g</span>
+                        <span class="report-label padding-left">SUSUT</span>
+                        <span class="report-value padding-right">${formData.get("susut") || "0.00"} g</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">BERAT TERIMA</span>
-                        <span class="report-value">${document.getElementById("beratTerima").value || "0.00"} g</span>
+                        <span class="report-label padding-left">BERAT TERIMA</span>
+                        <span class="report-value padding-right">${document.getElementById("beratTerima").value || "0.00"} g</span>
                     </div>
                 </div>
                 
                 <div class="report-divider"></div>
                 
                 <div class="report-section">
-                    <div class="report-section-title">KONDISI & MODEL</div>
+                    <div class="report-section-title padding-left padding-right">KONDISI & MODEL</div>
                     <div class="report-grid">
                         <div class="grid-item">
                             <span>KONDISI</span>
@@ -1411,18 +1484,18 @@
                 <div class="report-divider"></div>
                 
                 <div class="report-section">
-                    <div class="report-section-title">PERHITUNGAN HARGA</div>
+                    <div class="report-section-title padding-left padding-right">PERHITUNGAN HARGA</div>
                     <div class="report-line">
-                        <span class="report-label">COKIM TERIMA</span>
-                        <span class="report-value">Rp ${formatRupiah(formData.get("cokimTerima"))}</span>
+                        <span class="report-label padding-left">COKIM TERIMA</span>
+                        <span class="report-value padding-right">Rp ${formatRupiah(formData.get("cokimTerima"))}</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">RATE TERIMA</span>
-                        <span class="report-value">${formData.get("rateTerima") || "0"}%</span>
+                        <span class="report-label padding-left">RATE TERIMA</span>
+                        <span class="report-value padding-right">${formData.get("rateTerima") || "0"}%</span>
                     </div>
                     <div class="report-line">
-                        <span class="report-label">HARGA PER GRAM</span>
-                        <span class="report-value">Rp ${formatRupiah(document.getElementById("hargaPerGram").value)}</span>
+                        <span class="report-label padding-left">HARGA PER GRAM</span>
+                        <span class="report-value padding-right">Rp ${formatRupiah(document.getElementById("hargaPerGram").value)}</span>
                     </div>
                 </div>
                 
@@ -1430,12 +1503,12 @@
                 
                 <div class="report-total">
                     <div class="report-line">
-                        <span class="report-label">TOTAL HARGA</span>
-                        <span class="report-value">Rp ${formatRupiah(document.getElementById("hargaTerima").value)}</span>
+                        <span class="report-label padding-left">TOTAL HARGA</span>
+                        <span class="report-value padding-right">Rp ${formatRupiah(document.getElementById("hargaTerima").value)}</span>
                     </div>
                 </div>
                 
-                <div class="report-footer">
+                <div class="report-footer padding-left padding-right">
                     <div>TERIMA KASIH ATAS KERJA SAMANYA</div>
                     <div>WWW.CEK-EMAS-UBER.COM</div>
                 </div>
@@ -1444,7 +1517,7 @@
             thermalReport.innerHTML = reportHTML;
         }
 
-        // Fungsi untuk mencetak laporan dengan kontrol kecepatan
+        // Fungsi untuk mencetak laporan dengan padding adjustment
         function printThermalReport() {
             const printArea = document.getElementById("printArea");
             const thermalReport = document.getElementById("thermalReport");
@@ -1455,24 +1528,42 @@
 
             // Beri jeda untuk memastikan rendering selesai
             setTimeout(() => {
-                // Optimasi untuk printer thermal - beri waktu antar baris
-                const style = document.createElement('style');
-                style.innerHTML = `
+                // Tambahkan CSS khusus untuk adjust padding saat print
+                const printStyle = document.createElement('style');
+                printStyle.innerHTML = `
                     @media print {
-                        .report-line, .report-divider, .report-section {
-                            animation: none !important;
-                            transition: none !important;
-                            print-color-adjust: exact !important;
-                            -webkit-print-color-adjust: exact !important;
+                        /* Force additional right shift */
+                        body {
+                            margin-left: 3mm !important;
                         }
                         
-                        /* Slow down print for better thermal printing */
+                        #printArea {
+                            transform: translateX(3mm) !important;
+                            margin-left: 2mm !important;
+                        }
+                        
+                        .thermal-report {
+                            padding-left: 4mm !important;
+                            padding-right: 1mm !important;
+                        }
+                        
+                        .padding-left {
+                            padding-left: 3mm !important;
+                        }
+                        
+                        .padding-right {
+                            padding-right: 2mm !important;
+                        }
+                        
+                        /* Ensure no cutting */
                         * {
-                            print-delay: 50ms !important;
+                            max-width: 52mm !important;
+                            overflow: hidden !important;
+                            word-wrap: break-word !important;
                         }
                     }
                 `;
-                document.head.appendChild(style);
+                document.head.appendChild(printStyle);
 
                 // Trigger print dengan delay untuk printer thermal
                 setTimeout(() => {
@@ -1482,7 +1573,7 @@
                     setTimeout(() => {
                         printArea.style.display = "none";
                         thermalReport.style.display = "none";
-                        document.head.removeChild(style);
+                        document.head.removeChild(printStyle);
                     }, 500);
                 }, 300);
             }, 200);
