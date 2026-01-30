@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUD DATA EMAS UBER</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    />
+    <link rel="stylesheet" href="crud-style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header>
+        <h1><i class="fas fa-database"></i> CRUD DATA EMAS UBER</h1>
+        <p class="subtitle">
+          Manajemen Data Transaksi Emas - Sistem CRUD Lengkap
+        </p>
+        <div class="connection-status">
+          <div class="status-dot"></div>
+          <span id="connectionText">Terhubung ke Spreadsheet</span>
+        </div>
+
+        <!-- NAVIGATION -->
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i> Form Input
+          </a>
+          <a href="crud.html" class="nav-link active">
+            <i class="fas fa-database"></i> Data Management
+          </a>
+        </nav>
+      </header>
+
+      <!-- INFO BOX -->
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <strong>Petunjuk Penggunaan:</strong> Halaman ini menampilkan semua data
+        transaksi emas. Anda dapat melihat detail, mengedit, menghapus, atau
+        mencetak ulang data. Maksimal 15 data per halaman.
+      </div>
+
+      <!-- FILTER & SEARCH -->
+      <div class="filter-section">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari berdasarkan ID, kode sales, atau nama toko..."
+          />
+        </div>
+
+        <div class="filter-controls">
+          <select id="filterDate" class="filter-select">
+            <option value="">Semua Tanggal</option>
+            <option value="today">Hari Ini</option>
+            <option value="week">Minggu Ini</option>
+            <option value="month">Bulan Ini</option>
+          </select>
+
+          <select id="filterStatus" class="filter-select">
+            <option value="">Semua Status</option>
+            <option value="SUDAH CETAK">Sudah Cetak</option>
+            <option value="BELUM CETAK">Belum Cetak</option>
+          </select>
+
+          <button id="resetFilter" class="btn btn-secondary">
+            <i class="fas fa-redo-alt"></i> Reset Filter
+          </button>
+        </div>
+      </div>
+
+      <!-- STATUS INDICATOR -->
+      <div class="status-indicator" id="statusIndicator">
+        <span id="statusMessage"></span>
+      </div>
+
+      <!-- DATA TABLE -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2><i class="fas fa-table"></i> Daftar Transaksi Emas</h2>
+          <div class="table-actions">
+            <div class="table-info">
+              <span id="currentPage">Halaman 1</span>
+              <span id="totalRecords">Total: 0 data</span>
+            </div>
+            <div class="pagination-controls">
+              <button id="prevPage" class="btn-pagination" disabled>
+                <i class="fas fa-chevron-left"></i> Sebelumnya
+              </button>
+              <button id="nextPage" class="btn-pagination" disabled>
+                Berikutnya <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>ID Transaksi</th>
+                <th>Tanggal</th>
+                <th>Kode Sales</th>
+                <th>Nama Barang</th>
+                <th>Kadar Mesin</th>
+                <th>Berat Terima</th>
+                <th>Harga Terima</th>
+                <th>Status Cetak</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Data akan dimuat di sini -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- LOADING DATA -->
+        <div id="loadingData" class="loading-data">
+          <div class="spinner"></div>
+          <p>Memuat data...</p>
+        </div>
+
+        <!-- NO DATA MESSAGE -->
+        <div id="noDataMessage" class="no-data-message" style="display: none">
+          <i class="fas fa-database"></i>
+          <h3>Tidak Ada Data</h3>
+          <p>Belum ada data transaksi yang tersimpan.</p>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer>
+        <p><strong>CRUD DATA EMAS UBER - Sistem Manajemen Data</strong></p>
+        <p>
+          © 2023 - <span id="currentYear"></span> | Versi 2.1 | Terhubung ke:
+          <a
+            href="https://docs.google.com/spreadsheets/d/1xsWtTsJ1XFd6GUiObAKGAX8XDjC76wz7xuCqQCafr20/edit?usp=sharing"
+            target="_blank"
+            >Google Spreadsheet</a
+          >
+        </p>
+        <p>
+          Untuk bantuan teknis, hubungi:
+          <a href="mailto:support@uberemas.com">support@uberemas.com</a>
+        </p>
+      </footer>
+
+      <!-- MODAL DETAIL -->
+      <div id="detailModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3><i class="fas fa-eye"></i> Detail Transaksi</h3>
+            <button class="modal-close" id="closeDetailModal">&times;</button>
+          </div>
+          <div class="modal-body" id="detailContent">
+            <!-- Detail akan dimuat di sini -->
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="printFromDetail">
+              <i class="fas fa-print"></i> Cetak Ulang
+            </button>
+            <button class="btn btn-primary" id="editFromDetail">
+              <i class="fas fa-edit"></i> Edit Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL EDIT -->
+      <div id="editModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Transaksi</h3>
+            <button class="modal-close" id="closeEditModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+              <!-- Form edit akan dimuat di sini -->
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelEdit">
+              <i class="fas fa-times"></i> Batal
+            </button>
+            <button class="btn btn-primary" id="saveEdit">
+              <i class="fas fa-save"></i> Simpan Perubahan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOADING OVERLAY -->
+      <div class="loading" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3>Memproses...</h3>
+        <p id="loadingMessage">Mohon tunggu sebentar</p>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="crud-script.js"></script>
+  </body>
+</html>
