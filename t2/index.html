@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FORM CEK EMAS UBER</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header>
+        <h1><i class="fas fa-gem"></i> FORM CEK EMAS UBER</h1>
+        <p class="subtitle">
+          Sistem Pengecekan dan Penerimaan Emas - Versi 2.1 (dengan Upload
+          Gambar)
+        </p>
+        <div class="connection-status">
+          <div class="status-dot"></div>
+          <span id="connectionText">Terhubung ke Spreadsheet</span>
+        </div>
+      </header>
+
+      <!-- INFO BOX -->
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <strong>Petunjuk Penggunaan:</strong> Isi semua form yang bertanda (*),
+        sistem akan otomatis menghitung kadar mesin, berat terima, dan harga.
+        Upload maksimal 3 gambar. Klik "Simpan & Cetak" untuk menyimpan ke
+        spreadsheet dan mencetak struk.
+      </div>
+
+      <!-- STATUS INDICATOR -->
+      <div class="status-indicator" id="statusIndicator">
+        <span id="statusMessage"></span>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="main-content">
+        <!-- FORM SECTION -->
+        <section class="form-section">
+          <h2 class="section-title">
+            <i class="fas fa-edit"></i> Form Input Data
+          </h2>
+          <form id="emasForm">
+            <!-- ROW 1 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="kodeSales" class="required"
+                  ><i class="fas fa-id-card"></i> Kode Sales</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-user-tag"></i>
+                  <input
+                    type="number"
+                    id="kodeSales"
+                    name="kodeSales"
+                    required
+                    placeholder="Masukkan kode sales"
+                    class="uppercase-input"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cokimTerima" class="required"
+                  ><i class="fas fa-money-bill-wave"></i> Cokim Terima</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-hand-holding-usd"></i>
+                  <input
+                    type="number"
+                    id="cokimTerima"
+                    name="cokimTerima"
+                    required
+                    placeholder="Masukkan jumlah cokim"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- JENIS BARANG -->
+            <div class="form-group">
+              <label for="jenisBarang" class="required"
+                ><i class="fas fa-box-open"></i> Jenis Barang</label
+              >
+              <div class="input-with-icon">
+                <i class="fas fa-box"></i>
+                <input
+                  type="text"
+                  id="jenisBarang"
+                  name="jenisBarang"
+                  required
+                  placeholder="Contoh: GELANG, KALUNG, CINCIN"
+                  class="uppercase-input"
+                />
+              </div>
+            </div>
+
+            <!-- ROW 2 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="surat" class="required"
+                  ><i class="fas fa-file-contract"></i> Surat</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-file-alt"></i>
+                  <select
+                    id="surat"
+                    name="surat"
+                    required
+                    class="uppercase-input"
+                  >
+                    <option value="">- PILIH STATUS SURAT -</option>
+                    <option value="ADA">ADA</option>
+                    <option value="TIDAK ADA">TIDAK ADA</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="namaToko"
+                  ><i class="fas fa-store-alt"></i> Nama Toko</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-store"></i>
+                  <input
+                    type="text"
+                    id="namaToko"
+                    name="namaToko"
+                    placeholder="Masukkan nama toko"
+                    class="uppercase-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 3 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="kadarFisik"
+                  ><i class="fas fa-percent"></i> Kadar Fisik</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-weight-scale"></i>
+                  <input
+                    type="number"
+                    id="kadarFisik"
+                    name="kadarFisik"
+                    placeholder="Kadar fisik emas"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="presentaseMesin" class="required"
+                  ><i class="fas fa-cogs"></i> Presentase Mesin (%)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-percentage"></i>
+                  <input
+                    type="number"
+                    id="presentaseMesin"
+                    name="presentaseMesin"
+                    required
+                    placeholder="Masukkan persentase"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 4 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="kadarMesin"
+                  ><i class="fas fa-microchip"></i> Kadar Mesin</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-cogs"></i>
+                  <input
+                    type="number"
+                    id="kadarMesin"
+                    name="kadarMesin"
+                    readonly
+                    placeholder="Akan terisi otomatis"
+                  />
+                </div>
+                <small class="tooltip"
+                  >Otomatis: (Presentase Mesin / 100) * 24
+                  <span class="tooltip-text"
+                    >Kadar mesin dihitung dari persentase mesin dikali 24
+                    karat</span
+                  >
+                </small>
+              </div>
+              <div class="form-group">
+                <label for="kodePabrik"
+                  ><i class="fas fa-industry"></i> Kode Pabrik</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-industry"></i>
+                  <input
+                    type="text"
+                    id="kodePabrik"
+                    name="kodePabrik"
+                    placeholder="Kode pabrik pembuat"
+                    class="uppercase-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 5 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="beratSurat"
+                  ><i class="fas fa-weight-hanging"></i> Berat Surat
+                  (gram)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-file-signature"></i>
+                  <input
+                    type="number"
+                    id="beratSurat"
+                    name="beratSurat"
+                    step="0.01"
+                    placeholder="Berat sesuai surat"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="beratFisik" class="required"
+                  ><i class="fas fa-weight"></i> Berat Fisik (gram)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-weight-hanging"></i>
+                  <input
+                    type="number"
+                    id="beratFisik"
+                    name="beratFisik"
+                    step="0.01"
+                    required
+                    placeholder="Berat fisik sebenarnya"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 6 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="susut" class="required"
+                  ><i class="fas fa-minus-circle"></i> Susut (gram)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-minus"></i>
+                  <input
+                    type="number"
+                    id="susut"
+                    name="susut"
+                    step="0.01"
+                    required
+                    placeholder="Nilai susut"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="beratTerima"
+                  ><i class="fas fa-balance-scale"></i> Berat Terima
+                  (gram)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-weight-hanging"></i>
+                  <input
+                    type="number"
+                    id="beratTerima"
+                    name="beratTerima"
+                    step="0.01"
+                    readonly
+                    placeholder="Akan terisi otomatis"
+                  />
+                </div>
+                <small class="tooltip"
+                  >Otomatis: Berat terkecil (surat/fisik) - susut
+                  <span class="tooltip-text"
+                    >Jika berat surat &lt; berat fisik: (berat surat - susut)<br />Jika
+                    berat fisik &lt; berat surat: (berat fisik - susut)</span
+                  >
+                </small>
+              </div>
+            </div>
+
+            <!-- ROW 7 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="kondisiPerhiasan" class="required"
+                  ><i class="fas fa-gem"></i> Kondisi Perhiasan</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-gem"></i>
+                  <select
+                    id="kondisiPerhiasan"
+                    name="kondisiPerhiasan"
+                    required
+                    class="uppercase-input"
+                  >
+                    <option value="">- PILIH KONDISI -</option>
+                    <option value="NORMAL">NORMAL</option>
+                    <option value="RUSAK">RUSAK</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="model" class="required"
+                  ><i class="fas fa-shapes"></i> Model</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-shapes"></i>
+                  <select
+                    id="model"
+                    name="model"
+                    required
+                    class="uppercase-input"
+                  >
+                    <option value="">- PILIH MODEL -</option>
+                    <option value="POLOS">POLOS</option>
+                    <option value="BATU">BATU</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 8 -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="rateTerima" class="required"
+                  ><i class="fas fa-chart-line"></i> Rate Terima</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-chart-line"></i>
+                  <input
+                    type="number"
+                    id="rateTerima"
+                    name="rateTerima"
+                    step="0.0001"
+                    required
+                    placeholder="Masukkan rate terima"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="hargaPerGram"
+                  ><i class="fas fa-money-bill"></i> Harga Per Gram (Rp)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-money-bill-wave"></i>
+                  <input
+                    type="number"
+                    id="hargaPerGram"
+                    name="hargaPerGram"
+                    readonly
+                    placeholder="Akan terisi otomatis"
+                  />
+                </div>
+                <small class="tooltip"
+                  >Otomatis: Floor(Cokim Terima × Rate Terima, 500)
+                  <span class="tooltip-text"
+                    >Dibulatkan ke bawah ke kelipatan 500 terdekat</span
+                  >
+                </small>
+              </div>
+            </div>
+
+            <!-- HARGA TERIMA -->
+            <div class="form-group">
+              <label for="hargaTerima"
+                ><i class="fas fa-calculator"></i> Harga Terima (Rp)</label
+              >
+              <div class="input-with-icon">
+                <i class="fas fa-money-check-alt"></i>
+                <input
+                  type="number"
+                  id="hargaTerima"
+                  name="hargaTerima"
+                  readonly
+                  placeholder="Akan terisi otomatis"
+                />
+              </div>
+              <small class="tooltip"
+                >Otomatis: Floor(Harga Per Gram × Berat Terima, 500)
+                <span class="tooltip-text"
+                  >Dibulatkan ke bawah ke kelipatan 500 terdekat</span
+                >
+              </small>
+            </div>
+
+            <!-- UPLOAD GAMBAR -->
+            <div class="form-group">
+              <label
+                ><i class="fas fa-images"></i> Upload Gambar (Maks. 3 file,
+                2MB/file)</label
+              >
+              <div class="image-upload-container">
+                <div class="image-preview-container" id="imagePreviewContainer">
+                  <!-- Preview gambar akan muncul di sini -->
+                </div>
+                <div class="upload-controls">
+                  <label for="imageUpload" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> Pilih Gambar
+                  </label>
+                  <input
+                    type="file"
+                    id="imageUpload"
+                    name="imageUpload"
+                    accept="image/*"
+                    multiple
+                    style="display: none"
+                  />
+                  <div class="upload-info">
+                    <span id="selectedImageCount">0 gambar dipilih</span>
+                    <span class="max-info">Maks. 3 gambar</span>
+                  </div>
+                </div>
+                <div class="image-uploaded-filenames" id="uploadedFileNames">
+                  <!-- Nama file terupload akan muncul di sini -->
+                </div>
+              </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="button-group">
+              <button type="button" id="resetBtn" class="btn btn-secondary">
+                <i class="fas fa-redo-alt"></i> Reset Form
+              </button>
+              <button type="submit" id="submitBtn" class="btn btn-primary">
+                <i class="fas fa-save"></i> Simpan & Cetak
+              </button>
+              <button
+                type="button"
+                id="testPrintBtn"
+                class="btn test-print-btn"
+              >
+                <i class="fas fa-print"></i> Test Cetak
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- PREVIEW SECTION -->
+        <section class="preview-section">
+          <h2 class="section-title"><i class="fas fa-eye"></i> Preview Data</h2>
+          <div class="preview-box">
+            <div id="previewContent">
+              <p class="preview-placeholder">
+                Form belum diisi. Data akan muncul di sini setelah diisi.
+              </p>
+            </div>
+          </div>
+
+          <!-- STATISTICS -->
+          <div class="stats-box" id="statsBox">
+            <div class="stats-title">
+              <i class="fas fa-chart-bar"></i> Statistik Transaksi
+            </div>
+            <div class="stats-content">
+              <div class="stat-item">
+                <div class="stat-value" id="totalTransaksi">0</div>
+                <div class="stat-label">Total Data</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="lastId">-</div>
+                <div class="stat-label">ID Terakhir</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="todayCount">0</div>
+                <div class="stat-label">Hari Ini</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRINT BUTTON -->
+          <div class="preview-actions">
+            <button
+              type="button"
+              id="printPreviewBtn"
+              class="btn btn-danger"
+              disabled
+            >
+              <i class="fas fa-print"></i> Cetak Sekarang
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- PRINT AREA (HIDDEN) -->
+      <div id="printArea" style="display: none">
+        <div class="thermal-receipt" id="thermalReceipt"></div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer>
+        <p>
+          <strong>FORM CEK EMAS UBER - Sistem Digital Penerimaan Emas</strong>
+        </p>
+        <p>
+          © 2023 - <span id="currentYear"></span> | Versi 2.1 | Terhubung ke:
+          <a
+            href="https://docs.google.com/spreadsheets/d/1xsWtTsJ1XFd6GUiObAKGAX8XDjC76wz7xuCqQCafr20/edit?usp=sharing"
+            target="_blank"
+            >Google Spreadsheet</a
+          >
+        </p>
+        <p>
+          Untuk bantuan teknis, hubungi:
+          <a href="mailto:support@uberemas.com">support@uberemas.com</a>
+        </p>
+      </footer>
+
+      <!-- LOADING OVERLAY -->
+      <div class="loading" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3>Menyimpan Data ke Spreadsheet...</h3>
+        <p id="loadingMessage">Mohon tunggu sebentar</p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
