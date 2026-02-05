@@ -1012,7 +1012,7 @@
     </div>
 
     <!-- JAVASCRIPT -->
-    <script>
+<script>
         // ==============================
         // KONFIGURASI SISTEM
         // ==============================
@@ -1261,9 +1261,13 @@
             showStatus("Test cetak berhasil!", true);
         }
 
-        // Fungsi untuk menyimpan ke spreadsheet
+        // ==============================
+        // FUNGSI SIMPAN KE SPREADSHEET - VERSI DIPERBAIKI
+        // ==============================
+
         async function saveToSpreadsheet(formData, transactionId) {
             const dataToSend = {
+                operation: 'save',
                 transactionId: transactionId,
                 kodeSales: formData.get("kodeSales"),
                 cokimTerima: formData.get("cokimTerima"),
@@ -1290,63 +1294,147 @@
             console.log("Mengirim data:", dataToSend);
 
             try {
-                // Menggunakan mode 'no-cors' untuk menghindari CORS error
-                const response = await fetch(CONFIG.WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataToSend)
+                // Buat parameter URL
+                const params = new URLSearchParams();
+                Object.keys(dataToSend).forEach(key => {
+                    params.append(key, dataToSend[key]);
                 });
 
-                // Karena mode no-cors, kita tidak bisa membaca response
+                // Gunakan fetch dengan GET
+                const response = await fetch(`${CONFIG.WEB_APP_URL}?${params.toString()}`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log("Response dari server:", result);
+                    
+                    if (result.success) {
+                        return {
+                            success: true,
+                            message: "Data berhasil disimpan ke spreadsheet",
+                            transactionId: result.transactionId || transactionId,
+                            details: result
+                        };
+                    } else {
+                        throw new Error(result.message || "Gagal menyimpan data");
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+            } catch (error) {
+                console.error("Error menyimpan data:", error);
+                
                 // Simpan backup ke localStorage
                 saveBackup(dataToSend);
                 
                 return {
                     success: true,
-                    message: "Data berhasil dikirim ke spreadsheet",
-                    transactionId: transactionId
+                    message: "Data disimpan dalam mode offline (backup ke localStorage)",
+                    transactionId: transactionId,
+                    offline: true
                 };
-
-            } catch (error) {
-                console.error("Error:", error);
-                saveBackup(dataToSend);
-                throw new Error("Gagal mengirim data: " + error.message);
             }
         }
 
-        // Fungsi untuk menyimpan backup
+        // Fungsi untuk menyimpan backup ke localStorage
         function saveBackup(data) {
             try {
                 const backupKey = `backup_${data.transactionId}_${Date.now()}`;
-                localStorage.setItem(backupKey, JSON.stringify({
+                const backupData = {
                     ...data,
                     backupTime: new Date().toISOString(),
                     status: "pending"
-                }));
+                };
+                
+                localStorage.setItem(backupKey, JSON.stringify(backupData));
                 
                 const backupList = JSON.parse(localStorage.getItem('backup_list') || '[]');
                 backupList.push(backupKey);
                 localStorage.setItem('backup_list', JSON.stringify(backupList));
                 
                 console.log("Data disimpan sebagai backup:", backupKey);
+                return true;
             } catch (error) {
                 console.error("Gagal menyimpan backup:", error);
+                return false;
             }
         }
 
-        // Fungsi untuk mengambil statistik
+        // Fungsi untuk mencoba mengirim ulang backup
+        async function retryBackups() {
+            try {
+                const backupList = JSON.parse(localStorage.getItem('backup_list') || '[]');
+                let successCount = 0;
+                
+                for (const backupKey of backupList) {
+                    const backupDataStr = localStorage.getItem(backupKey);
+                    if (!backupDataStr) continue;
+                    
+                    const backupData = JSON.parse(backupDataStr);
+                    
+                    if (backupData && backupData.status === "pending") {
+                        try {
+                            const params = new URLSearchParams();
+                            Object.keys(backupData).forEach(key => {
+                                if (key !== 'backupTime' && key !== 'status') {
+                                    params.append(key, backupData[key]);
+                                }
+                            });
+                            params.append('operation', 'save');
+                            
+                            const response = await fetch(`${CONFIG.WEB_APP_URL}?${params.toString()}`, {
+                                method: 'GET',
+                                mode: 'cors'
+                            });
+                            
+                            if (response.ok) {
+                                backupData.status = "sent";
+                                localStorage.setItem(backupKey, JSON.stringify(backupData));
+                                successCount++;
+                                console.log("Backup berhasil dikirim:", backupKey);
+                            }
+                        } catch (error) {
+                            console.log("Gagal mengirim backup:", backupKey, error);
+                        }
+                    }
+                }
+                
+                if (successCount > 0) {
+                    showStatus(`${successCount} data backup berhasil dikirim ulang`, true, 5000);
+                }
+                
+                return successCount;
+            } catch (error) {
+                console.error("Error dalam retryBackups:", error);
+                return 0;
+            }
+        }
+
+        // ==============================
+        // FUNGSI UNTUK MENGAMBIL STATISTIK
+        // ==============================
+
         async function fetchStatistics() {
             try {
-                const response = await fetch(`${CONFIG.WEB_APP_URL}?t=${Date.now()}`);
+                const response = await fetch(`${CONFIG.WEB_APP_URL}?operation=get_all&t=${Date.now()}`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
                 
                 if (response.ok) {
                     const data = await response.json();
                     
                     if (data.success) {
-                        lastTransactionId = data.lastId;
+                        lastTransactionId = data.lastId || 'NOTLU-0000';
                         totalTransactions = data.count || 0;
                         todayTransactions = data.todayCount || 0;
 
@@ -1361,7 +1449,27 @@
                 return false;
             } catch (error) {
                 console.log("Tidak dapat mengambil statistik:", error);
-                return false;
+                
+                // Coba ambil dari localStorage jika ada
+                try {
+                    const backupList = JSON.parse(localStorage.getItem('backup_list') || '[]');
+                    totalTransactions = backupList.length;
+                    todayTransactions = backupList.filter(key => {
+                        const backup = JSON.parse(localStorage.getItem(key) || '{}');
+                        const backupDate = new Date(backup.backupTime || Date.now());
+                        const today = new Date();
+                        return backupDate.toDateString() === today.toDateString();
+                    }).length;
+                    
+                    document.getElementById("totalTransaksi").textContent = totalTransactions;
+                    document.getElementById("lastId").textContent = "OFFLINE";
+                    document.getElementById("todayCount").textContent = todayTransactions;
+                    document.getElementById("statsBox").style.display = "block";
+                    
+                    return true;
+                } catch (e) {
+                    return false;
+                }
             }
         }
 
@@ -1470,7 +1578,7 @@
                     // Simpan ke spreadsheet
                     const result = await saveToSpreadsheet(formData, transactionId);
 
-                    updateLoadingMessage("Data berhasil disimpan. Mempersiapkan cetakan...");
+                    updateLoadingMessage("Mempersiapkan cetakan...");
 
                     // Buat dan cetak struk
                     setTimeout(() => {
@@ -1487,7 +1595,11 @@
                             // Update statistik
                             fetchStatistics();
 
-                            showStatus(`Data berhasil disimpan dengan ID: <strong>${transactionId}</strong>`, true, 6000);
+                            if (result.offline) {
+                                showStatus(`Data disimpan offline dengan ID: <strong>${transactionId}</strong> (akan dikirim otomatis saat online)`, true, 6000);
+                            } else {
+                                showStatus(`Data berhasil disimpan dengan ID: <strong>${transactionId}</strong>`, true, 6000);
+                            }
                         }, 1000);
                     }, 1500);
                 } catch (error) {
@@ -1499,6 +1611,11 @@
 
             // Ambil statistik awal
             fetchStatistics();
+
+            // Coba kirim ulang backup
+            setTimeout(() => {
+                retryBackups();
+            }, 3000);
 
             // Inisialisasi preview
             updatePreview();
