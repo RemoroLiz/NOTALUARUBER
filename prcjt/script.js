@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwNfgqoXKVW4Fyl-sN5scZ3KPSNZBzfXxfcXk487b6xItYdJ8YH9YZ3t9-LVlfX_gCQ/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx3iZvmD3NXgZMCgEOqAeL6i9ixoS5QimI_gBqAOIyvCZ8bGMjgjlVoDN779GspaVKI/exec",
   MAX_IMAGES: 5,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
@@ -287,27 +287,52 @@ function buildCustomerReceipt(id, v) {
 }
 
 function buildStoreReceipt(id, v) {
+  // Daftar field laporan toko. Disusun berpasangan lalu dibagi ke
+  // 2 kolom (kolom kiri = separuh pertama, kolom kanan = separuh
+  // kedua) supaya struk tidak terlalu panjang ke bawah.
+  const fields = [
+    ["Jenis", v.jenisBarang || "-"],
+    ["Cokim", v.cokimTerima || "-"],
+    ["Surat", v.surat || "-"],
+    ["Sales", v.kodeSales || "-"],
+    ["Toko", v.namaToko || "-"],
+    ["Kadar Fisik", v.kadarFisik || "-"],
+    ["Kadar Mesin", v.kadarMesin || "-"],
+    ["% Mesin", v.presentaseMesin ? `${v.presentaseMesin}%` : "-"],
+    ["Berat Surat", v.beratSurat ? `${v.beratSurat} g` : "-"],
+    ["Berat Fisik", v.beratFisik ? `${v.beratFisik} g` : "-"],
+    ["Susut", v.susut ? `${v.susut} g` : "-"],
+    ["Berat Terima", v.beratTerima ? `${v.beratTerima} g` : "-"],
+    ["Kondisi", v.kondisiPerhiasan || "-"],
+    ["Model", v.model || "-"],
+    ["Rate", v.rateTerima || "-"],
+    ["Harga/gram", formatRupiah(v.hargaPerGram)],
+  ];
+
+  const mid = Math.ceil(fields.length / 2);
+  const leftFields = fields.slice(0, mid);
+  const rightFields = fields.slice(mid);
+
+  const renderCol = (colFields) =>
+    colFields
+      .map(
+        ([label, value]) => `
+        <div class="tr-cell">
+          <span class="cell-k">${label}</span>
+          <span class="cell-v">${value}</span>
+        </div>`,
+      )
+      .join("");
+
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN TOKO</div>
       <div class="tr-sub">${id}</div>
       <hr />
-      <div class="tr-row"><span class="k">Jenis</span><span class="v">${v.jenisBarang || "-"}</span></div>
-      <div class="tr-row"><span class="k">Cokim</span><span class="v">${v.cokimTerima || "-"}</span></div>
-      <div class="tr-row"><span class="k">Surat</span><span class="v">${v.surat || "-"}</span></div>
-      <div class="tr-row"><span class="k">Sales</span><span class="v">${v.kodeSales || "-"}</span></div>
-      <div class="tr-row"><span class="k">Toko</span><span class="v">${v.namaToko || "-"}</span></div>
-      <div class="tr-row"><span class="k">Kadar Fisik</span><span class="v">${v.kadarFisik || "-"}</span></div>
-      <div class="tr-row"><span class="k">Kadar Mesin</span><span class="v">${v.kadarMesin || "-"}</span></div>
-      <div class="tr-row"><span class="k">% Mesin</span><span class="v">${v.presentaseMesin || "-"}%</span></div>
-      <div class="tr-row"><span class="k">Berat Surat</span><span class="v">${v.beratSurat || "-"} g</span></div>
-      <div class="tr-row"><span class="k">Berat Fisik</span><span class="v">${v.beratFisik || "-"} g</span></div>
-      <div class="tr-row"><span class="k">Susut</span><span class="v">${v.susut || "-"} g</span></div>
-      <div class="tr-row"><span class="k">Berat Terima</span><span class="v">${v.beratTerima || "-"} g</span></div>
-      <div class="tr-row"><span class="k">Kondisi</span><span class="v">${v.kondisiPerhiasan || "-"}</span></div>
-      <div class="tr-row"><span class="k">Model</span><span class="v">${v.model || "-"}</span></div>
-      <div class="tr-row"><span class="k">Rate</span><span class="v">${v.rateTerima || "-"}</span></div>
-      <div class="tr-row"><span class="k">Harga/gram</span><span class="v">${formatRupiah(v.hargaPerGram)}</span></div>
+      <div class="tr-columns">
+        <div class="tr-col">${renderCol(leftFields)}</div>
+        <div class="tr-col">${renderCol(rightFields)}</div>
+      </div>
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
     </div>`;
