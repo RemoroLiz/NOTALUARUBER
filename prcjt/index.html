@@ -342,7 +342,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="rateTerima" class="required"
-                  ><i class="fas fa-chart-line"></i> Rate Terima</label
+                  ><i class="fas fa-chart-line"></i> Rate Terima (%)</label
                 >
                 <div class="input-with-icon">
                   <i class="fas fa-chart-line"></i>
@@ -352,7 +352,7 @@
                     name="rateTerima"
                     step="0.0001"
                     required
-                    placeholder="Masukkan rate terima"
+                    placeholder="Contoh: 73 untuk 73%"
                     min="0"
                   />
                 </div>
@@ -372,9 +372,11 @@
                   />
                 </div>
                 <small class="tooltip"
-                  >Otomatis: Floor(Cokim Terima &times; Rate Terima, 500)
+                  >Otomatis: Floor(Cokim Terima &times; Rate Terima%, 500)
                   <span class="tooltip-text"
-                    >Dibulatkan ke bawah ke kelipatan 500 terdekat</span
+                    >Rate terima dianggap persen. Contoh: Cokim 1.000.000,
+                    Rate 73 &rarr; 1.000.000 &times; 73% = 730.000, dibulatkan
+                    ke bawah ke kelipatan 500 terdekat</span
                   >
                 </small>
               </div>
