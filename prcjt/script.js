@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx3iZvmD3NXgZMCgEOqAeL6i9ixoS5QimI_gBqAOIyvCZ8bGMjgjlVoDN779GspaVKI/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwNfgqoXKVW4Fyl-sN5scZ3KPSNZBzfXxfcXk487b6xItYdJ8YH9YZ3t9-LVlfX_gCQ/exec",
   MAX_IMAGES: 5,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
