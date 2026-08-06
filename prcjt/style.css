@@ -810,8 +810,14 @@ footer p { margin-bottom: 4px; }
      visibility:hidden tetap menghitung tinggi elemen di layout, jadi
      seluruh form/tabel/modal yang disembunyikan tetap "memakan ruang"
      vertikal dan menghasilkan halaman kosong tambahan setelah struk.
-     display:none benar-benar mengeluarkannya dari alur halaman. */
-  body > *:not(#printArea) {
+     display:none benar-benar mengeluarkannya dari alur halaman.
+
+     CATATAN: #printArea adalah anak dari .container (bukan anak
+     langsung <body>) - makanya target hide harus ".container > *",
+     bukan "body > *". Kalau salah target body, seluruh .container
+     (termasuk #printArea di dalamnya) ikut ter-hide -> hasil print
+     jadi blank. */
+  .container > *:not(#printArea) {
     display: none !important;
   }
 
