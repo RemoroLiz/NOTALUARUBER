@@ -802,17 +802,22 @@ footer p { margin-bottom: 4px; }
 
   html, body {
     height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  body * { visibility: hidden; }
-
-  #printArea, #printArea * { visibility: visible; }
+  /* PENTING: pakai display:none, BUKAN cuma visibility:hidden.
+     visibility:hidden tetap menghitung tinggi elemen di layout, jadi
+     seluruh form/tabel/modal yang disembunyikan tetap "memakan ruang"
+     vertikal dan menghasilkan halaman kosong tambahan setelah struk.
+     display:none benar-benar mengeluarkannya dari alur halaman. */
+  body > *:not(#printArea) {
+    display: none !important;
+  }
 
   #printArea {
     display: block !important;
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: static;
     width: 57mm;
   }
 
