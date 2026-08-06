@@ -96,7 +96,7 @@ function calculateBeratTerima() {
 function calculateHargaPerGram() {
   const cokim = parseFloat(document.getElementById("cokimTerima").value) || 0;
   const rate = parseFloat(document.getElementById("rateTerima").value) || 0;
-  const harga = floorToStep(cokim * rate, 500);
+  const harga = floorToStep(cokim * (rate / 100), 500);
   document.getElementById("hargaPerGram").value = cokim && rate ? harga : "";
 }
 
