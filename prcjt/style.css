@@ -790,13 +790,8 @@ footer p { margin-bottom: 4px; }
 
 @media print {
   @page {
-    /* PENTING: tinggi TIDAK boleh dikunci pendek (mis. 30mm) - kalau
-       konten lebih tinggi dari nilai ini, browser akan memecahnya jadi
-       banyak halaman berulang (ini penyebab bug "46 halaman"). Untuk
-       kertas roll thermal, beri tinggi longgar; printer roll akan
-       memotong kertas mengikuti panjang konten asli, bukan mengikuti
-       angka tinggi halaman ini. */
-    size: 57mm 150mm;
+    /* Ukuran kertas thermal fisik: 57mm x 30mm persis. */
+    size: 57mm 30mm;
     margin: 0;
   }
 
@@ -829,7 +824,14 @@ footer p { margin-bottom: 4px; }
 
   .thermal-receipt {
     width: 57mm;
-    padding: 1.5mm 2mm;
+    height: 30mm;
+    /* overflow:hidden = jaring pengaman - kalau suatu saat konten
+       (misalnya field ditambah lagi) sedikit lebih tinggi dari 30mm,
+       kelebihannya dipotong di sini, BUKAN meluber jadi halaman ke-2.
+       "Page normal" (1 halaman) jadi selalu terjamin. */
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 1mm 1.5mm;
     font-family: "Segoe UI", Arial, sans-serif;
     color: #000;
     page-break-after: avoid;
@@ -840,38 +842,41 @@ footer p { margin-bottom: 4px; }
     text-align: center;
     font-size: 7.5pt;
     font-weight: 700;
-    letter-spacing: 0.3px;
-    margin-bottom: 1mm;
+    letter-spacing: 0.2px;
+    line-height: 1.15;
+    margin-bottom: 0.5mm;
   }
 
   .thermal-receipt .tr-sub {
     text-align: center;
-    font-size: 6pt;
-    margin-bottom: 1.5mm;
+    font-size: 6.5pt;
+    line-height: 1.15;
+    margin-bottom: 0.8mm;
   }
 
   .thermal-receipt hr {
     border: none;
     border-top: 0.3mm dashed #000;
-    margin: 1mm 0;
+    margin: 0.6mm 0;
   }
 
   .thermal-receipt .tr-row {
     display: flex;
     justify-content: space-between;
-    font-size: 7pt;
-    line-height: 1.35;
+    font-size: 7.5pt;
+    line-height: 1.25;
   }
 
   .thermal-receipt .tr-row .k { color: #000; }
   .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; }
 
-  /* Layout 2 kolom untuk laporan toko - supaya tidak terlalu
-     panjang ke bawah, field-field pendek ditampilkan bersebelahan. */
+  /* Layout 2 kolom untuk laporan toko, label & value SATU BARIS
+     (bukan ditumpuk) supaya total tinggi cukup untuk 16 field
+     dalam 30mm. */
   .thermal-receipt .tr-columns {
     display: flex;
-    gap: 2mm;
-    margin: 0.5mm 0;
+    gap: 1.5mm;
+    margin: 0.3mm 0;
   }
 
   .thermal-receipt .tr-col {
@@ -880,24 +885,26 @@ footer p { margin-bottom: 4px; }
   }
 
   .thermal-receipt .tr-cell {
-    margin-bottom: 0.8mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5mm;
+    line-height: 1.2;
   }
 
   .thermal-receipt .tr-cell .cell-k {
-    display: block;
-    font-size: 5.3pt;
-    text-transform: uppercase;
-    letter-spacing: 0.2px;
+    font-size: 6pt;
     color: #000;
-    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .thermal-receipt .tr-cell .cell-v {
-    display: block;
-    font-size: 6.6pt;
+    font-size: 6.5pt;
     font-weight: 700;
-    line-height: 1.2;
-    word-break: break-word;
+    text-align: right;
+    white-space: nowrap;
   }
 
   .thermal-receipt .tr-total {
@@ -905,12 +912,12 @@ footer p { margin-bottom: 4px; }
     font-weight: 700;
     display: flex;
     justify-content: space-between;
-    margin-top: 1mm;
+    margin-top: 0.5mm;
   }
 
   .thermal-receipt .tr-footer {
     text-align: center;
-    font-size: 5.8pt;
-    margin-top: 1.5mm;
+    font-size: 6.5pt;
+    margin-top: 0.8mm;
   }
 }
