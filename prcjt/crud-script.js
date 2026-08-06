@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
- WEB_APP_URL: "https://script.google.com/macros/s/AKfycbzvftbTX0lsO9ly8fg5gKECpuvk7-VYmylm2UDg0UlVINMxiSkQWeKWRLuniwfI7aIN/exec",
+ WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 5,
 };
