@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/GANTI_DENGAN_DEPLOYMENT_ID/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx3iZvmD3NXgZMCgEOqAeL6i9ixoS5QimI_gBqAOIyvCZ8bGMjgjlVoDN779GspaVKI/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 5,
 };
@@ -254,7 +254,7 @@ const EDIT_FIELDS = [
   { key: "susut", label: "Susut (g)", type: "number" },
   { key: "kondisiPerhiasan", label: "Kondisi Perhiasan", type: "select", options: ["NORMAL", "RUSAK"] },
   { key: "model", label: "Model", type: "select", options: ["POLOS", "BATU"] },
-  { key: "rateTerima", label: "Rate Terima", type: "number" },
+  { key: "rateTerima", label: "Rate Terima (%)", type: "number" },
 ];
 
 function openEditModal(id) {
@@ -305,7 +305,7 @@ function recalcForEdit(values) {
 
   const cokim = parseFloat(values.cokimTerima) || 0;
   const rate = parseFloat(values.rateTerima) || 0;
-  values.hargaPerGram = cokim && rate ? Math.floor((cokim * rate) / 500) * 500 : "";
+  values.hargaPerGram = cokim && rate ? Math.floor((cokim * (rate / 100)) / 500) * 500 : "";
 
   const hargaPerGram = parseFloat(values.hargaPerGram) || 0;
   const beratTerima = parseFloat(values.beratTerima) || 0;
