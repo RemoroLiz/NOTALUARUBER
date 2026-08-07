@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbymZh-zk9R_toZ4zyPzCfGFqCcXICZVpXVn4G4KTaPTIp1va4_24BAMHN78qf7OcvK_0Q/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   MAX_IMAGES: 5,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
@@ -306,7 +306,9 @@ function setCustomerStatus(mode, extraText) {
 
 function clearCustomerSelection() {
   const idField = document.getElementById("customerId");
+  const idDisplay = document.getElementById("customerIdDisplay");
   if (idField) idField.value = "";
+  if (idDisplay) idDisplay.value = "";
 }
 
 function renderCustomerSuggestions(list) {
@@ -335,6 +337,7 @@ function renderCustomerSuggestions(list) {
       suppressCustomerSearch = true;
       document.getElementById("customerNameInput").value = item.dataset.nama;
       document.getElementById("customerId").value = item.dataset.id;
+      document.getElementById("customerIdDisplay").value = item.dataset.id;
       renderCustomerSuggestions([]);
 
       // Foto customer lama tidak perlu diupload ulang
@@ -470,9 +473,11 @@ function buildCustomerReceipt(id, v) {
 }
 
 function buildStoreReceipt(id, v) {
-  // Daftar field laporan toko. Disusun berpasangan lalu dibagi ke
-  // 2 kolom (kolom kiri = separuh pertama, kolom kanan = separuh
-  // kedua) supaya struk tidak terlalu panjang ke bawah.
+  // Field laporan toko - satu kolom (bukan 2 kolom seperti sebelumnya).
+  // Layout 2 kolom terbukti memaksa font sangat kecil sehingga mudah
+  // terpotong/tidak terbaca di printer thermal. Kertas roll thermal
+  // panjangnya fleksibel (printer memotong mengikuti panjang konten),
+  // jadi satu kolom yang lebih panjang ke bawah justru lebih aman.
   const fields = [
     ["Jenis", v.jenisBarang || "-"],
     ["Cokim", v.cokimTerima || "-"],
@@ -492,49 +497,48 @@ function buildStoreReceipt(id, v) {
     ["Harga/gram", formatRupiah(v.hargaPerGram)],
   ];
 
-  const mid = Math.ceil(fields.length / 2);
-  const leftFields = fields.slice(0, mid);
-  const rightFields = fields.slice(mid);
-
-  const renderCol = (colFields) =>
-    colFields
-      .map(
-        ([label, value]) => `
-        <div class="tr-cell">
-          <span class="cell-k">${label}</span>
-          <span class="cell-v">${value}</span>
-        </div>`,
-      )
-      .join("");
+  const rows = fields
+    .map(
+      ([label, value]) => `<div class="tr-row"><span class="k">${label}</span><span class="v">${value}</span></div>`,
+    )
+    .join("");
 
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN NOTA LUAR UBER</div>
       <div class="tr-sub">${id}</div>
       <hr />
-      <div class="tr-columns">
-        <div class="tr-col">${renderCol(leftFields)}</div>
-        <div class="tr-col">${renderCol(rightFields)}</div>
-      </div>
+      ${rows}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
     </div>`;
 }
 
-function printReceipt(session, id, v) {
-  const printArea = document.getElementById("printArea");
-  printArea.innerHTML = session === "customer" ? buildCustomerReceipt(id, v) : buildStoreReceipt(id, v);
-  window.print();
+/**
+ * Menggabungkan struk customer + laporan toko jadi SATU dokumen
+ * print (dipisahkan jarak beberapa cm + garis putus "gunting di
+ * sini"), supaya hanya 1x window.print() / 1 print job dipanggil.
+ *
+ * Sebelumnya dipanggil 2x window.print() berurutan (dengan jeda
+ * setTimeout) untuk 2 sesi terpisah. Ini bermasalah: window.print()
+ * bersifat blocking di sebagian browser (mis. Chrome), sehingga
+ * panggilan kedua bisa mulai sebelum job pertama benar-benar
+ * selesai/tertutup - menghasilkan hasil cetak ganda, tertukar, atau
+ * terpotong tergantung browser & printer thermal yang dipakai. Satu
+ * print job untuk kedua struk sekaligus menghilangkan race ini.
+ */
+function buildCombinedReceipt(id, v) {
+  return `
+    ${buildCustomerReceipt(id, v)}
+    <div class="tr-gap"><span>&#9986; gunting di sini &#9986;</span></div>
+    ${buildStoreReceipt(id, v)}
+  `;
 }
 
-/**
- * Mencetak 2 sesi berurutan: struk customer lalu laporan toko.
- * Browser akan menampilkan dua kali dialog cetak (satu per sesi)
- * karena keterbatasan window.print() yang sinkron per panggilan.
- */
-function printBothSessions(id, v) {
-  printReceipt("customer", id, v);
-  setTimeout(() => printReceipt("store", id, v), 700);
+function printReceipt(id, v) {
+  const printArea = document.getElementById("printArea");
+  printArea.innerHTML = buildCombinedReceipt(id, v);
+  window.print();
 }
 
 function testPrint() {
@@ -544,7 +548,7 @@ function testPrint() {
     showStatus("Isi form terlebih dahulu sebelum test cetak.", false);
     return;
   }
-  printBothSessions("TEST-0000", v);
+  printReceipt("TEST-0000", v);
 }
 
 // ==============================
@@ -659,7 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("printPreviewBtn").addEventListener("click", () => {
     if (!currentReceiptData) return;
-    printBothSessions(currentReceiptData.id, currentReceiptData.values);
+    printReceipt(currentReceiptData.id, currentReceiptData.values);
   });
 
   document.getElementById("emasForm").addEventListener("submit", async (e) => {
@@ -689,7 +693,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       updateLoadingMessage("Data tersimpan. Menyiapkan cetakan...");
       setTimeout(() => {
-        printBothSessions(result.id, values);
+        printReceipt(result.id, values);
 
         setTimeout(() => {
           resetForm();
