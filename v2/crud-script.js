@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbymZh-zk9R_toZ4zyPzCfGFqCcXICZVpXVn4G4KTaPTIp1va4_24BAMHN78qf7OcvK_0Q/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 5,
 };
@@ -413,7 +413,7 @@ async function deleteRecord(id) {
 }
 
 // ==============================
-// CETAK ULANG - 2 SESI THERMAL
+// CETAK ULANG - SATU DOKUMEN (customer + toko digabung)
 // ==============================
 function buildCustomerReceipt(id, v) {
   return `
@@ -433,6 +433,8 @@ function buildCustomerReceipt(id, v) {
 }
 
 function buildStoreReceipt(id, v) {
+  // Satu kolom (bukan 2 kolom) - layout 2 kolom memaksa font sangat
+  // kecil sehingga mudah terpotong/tidak terbaca di printer thermal.
   const fields = [
     ["Jenis", v.jenisBarang || "-"],
     ["Cokim", v.cokimTerima || "-"],
@@ -452,54 +454,54 @@ function buildStoreReceipt(id, v) {
     ["Harga/gram", formatRupiah(v.hargaPerGram)],
   ];
 
-  const mid = Math.ceil(fields.length / 2);
-  const leftFields = fields.slice(0, mid);
-  const rightFields = fields.slice(mid);
-
-  const renderCol = (colFields) =>
-    colFields
-      .map(
-        ([label, value]) => `
-        <div class="tr-cell">
-          <span class="cell-k">${label}</span>
-          <span class="cell-v">${value}</span>
-        </div>`,
-      )
-      .join("");
+  const rows = fields
+    .map(
+      ([label, value]) => `<div class="tr-row"><span class="k">${label}</span><span class="v">${value}</span></div>`,
+    )
+    .join("");
 
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN NOTA LUAR UBER</div>
       <div class="tr-sub">${id}</div>
       <hr />
-      <div class="tr-columns">
-        <div class="tr-col">${renderCol(leftFields)}</div>
-        <div class="tr-col">${renderCol(rightFields)}</div>
-      </div>
+      ${rows}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
     </div>`;
 }
 
-function printReceipt(session, id, v) {
+/**
+ * Satu dokumen print berisi struk customer + laporan toko sekaligus
+ * (dipisah jarak beberapa cm), supaya hanya 1x window.print() yang
+ * dipanggil - menghindari race 2 print job terpisah yang sebelumnya
+ * menyebabkan hasil cetak ganda/tertukar/terpotong di sebagian
+ * browser & printer thermal.
+ */
+function buildCombinedReceipt(id, v) {
+  return `
+    ${buildCustomerReceipt(id, v)}
+    <div class="tr-gap"><span>&#9986; gunting di sini &#9986;</span></div>
+    ${buildStoreReceipt(id, v)}
+  `;
+}
+
+function printReceipt(id, v) {
   const printArea = document.getElementById("printArea");
-  printArea.innerHTML = session === "customer" ? buildCustomerReceipt(id, v) : buildStoreReceipt(id, v);
+  printArea.innerHTML = buildCombinedReceipt(id, v);
   window.print();
 }
 
 async function reprintById(id) {
   const data = findById(id);
   if (!data) return;
-  printReceipt("customer", id, data);
-  setTimeout(async () => {
-    printReceipt("store", id, data);
-    try {
-      await apiPost({ action: "markPrinted", id });
-      await loadData();
-    } catch (err) {
-      console.error("Gagal menandai status cetak:", err);
-    }
-  }, 700);
+  printReceipt(id, data);
+  try {
+    await apiPost({ action: "markPrinted", id });
+    await loadData();
+  } catch (err) {
+    console.error("Gagal menandai status cetak:", err);
+  }
 }
 
 // ==============================
