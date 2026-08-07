@@ -341,6 +341,33 @@ header h1 i {
 .tooltip:hover .tooltip-text { display: block; }
 
 /* ---------------- IMAGE UPLOAD ---------------- */
+.customer-id-field { margin-top: 12px; }
+
+.customer-id-field .readonly-field {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: #f4f3ee;
+  color: var(--navy);
+  cursor: not-allowed;
+}
+
+.customer-id-field .readonly-field::placeholder {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.customer-id-field .readonly-field:not(:placeholder-shown) {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
 .customer-section { position: relative; }
 
 .customer-search-wrap { position: relative; }
@@ -885,11 +912,11 @@ footer p { margin-bottom: 4px; }
 }
 
 /* ============================================================
-   PRINT - STRUK THERMAL 57mm x 30mm
-   Dua sesi cetak: #printCustomer (untuk customer) dan
-   #printStore (laporan toko). Hanya salah satu yang tampil
-   sesuai class pada <body> saat mencetak (print-customer /
-   print-store), sisanya disembunyikan agar hemat kertas.
+   PRINT - STRUK THERMAL 57mm
+   Satu dokumen cetak berisi 2 struk sekaligus (customer + toko),
+   dipisahkan jarak beberapa cm (.tr-gap) - hanya SATU window.print()
+   yang dipanggil, jadi hanya 1 print job (tidak ada lagi 2 dialog
+   cetak terpisah yang rawan tertukar/terpotong antar browser).
    ============================================================ */
 #printArea { display: none; }
 
@@ -897,11 +924,12 @@ footer p { margin-bottom: 4px; }
   @page {
     /* PENTING: tinggi TIDAK boleh dikunci pendek (mis. 30mm) - kalau
        konten lebih tinggi dari nilai ini, browser akan memecahnya jadi
-       banyak halaman berulang (ini penyebab bug "46 halaman"). Untuk
-       kertas roll thermal, beri tinggi longgar; printer roll akan
-       memotong kertas mengikuti panjang konten asli, bukan mengikuti
-       angka tinggi halaman ini. */
-    size: 57mm 150mm;
+       banyak halaman berulang (ini penyebab bug "banyak halaman").
+       Untuk kertas roll thermal, beri tinggi longgar; printer roll
+       akan memotong kertas mengikuti panjang konten asli, bukan
+       mengikuti angka tinggi halaman ini. Dinaikkan jadi 260mm karena
+       sekarang 1 dokumen berisi 2 struk sekaligus. */
+    size: 57mm 260mm;
     margin: 0;
   }
 
@@ -928,7 +956,7 @@ footer p { margin-bottom: 4px; }
 
   .thermal-receipt {
     width: 57mm;
-    padding: 1.5mm 2mm;
+    padding: 2mm 2.5mm;
     font-family: "Segoe UI", Arial, sans-serif;
     color: #000;
     page-break-after: avoid;
@@ -937,79 +965,76 @@ footer p { margin-bottom: 4px; }
 
   .thermal-receipt .tr-title {
     text-align: center;
-    font-size: 7.5pt;
+    font-size: 10.5pt;
     font-weight: 700;
     letter-spacing: 0.3px;
-    margin-bottom: 1mm;
+    margin-bottom: 1.2mm;
   }
 
   .thermal-receipt .tr-sub {
     text-align: center;
-    font-size: 6pt;
-    margin-bottom: 1.5mm;
+    font-size: 8pt;
+    margin-bottom: 1.8mm;
   }
 
   .thermal-receipt hr {
     border: none;
-    border-top: 0.3mm dashed #000;
-    margin: 1mm 0;
+    border-top: 0.4mm dashed #000;
+    margin: 1.2mm 0;
   }
 
   .thermal-receipt .tr-row {
     display: flex;
     justify-content: space-between;
-    font-size: 7pt;
-    line-height: 1.35;
-  }
-
-  .thermal-receipt .tr-row .k { color: #000; }
-  .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; }
-
-  /* Layout 2 kolom untuk laporan toko - supaya tidak terlalu
-     panjang ke bawah, field-field pendek ditampilkan bersebelahan. */
-  .thermal-receipt .tr-columns {
-    display: flex;
+    align-items: baseline;
     gap: 2mm;
-    margin: 0.5mm 0;
+    font-size: 8.5pt;
+    line-height: 1.55;
   }
 
-  .thermal-receipt .tr-col {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .thermal-receipt .tr-cell {
-    margin-bottom: 0.8mm;
-  }
-
-  .thermal-receipt .tr-cell .cell-k {
-    display: block;
-    font-size: 5.3pt;
-    text-transform: uppercase;
-    letter-spacing: 0.2px;
+  .thermal-receipt .tr-row .k {
     color: #000;
-    line-height: 1.1;
+    white-space: nowrap;
   }
 
-  .thermal-receipt .tr-cell .cell-v {
-    display: block;
-    font-size: 6.6pt;
+  .thermal-receipt .tr-row .v {
     font-weight: 700;
-    line-height: 1.2;
+    text-align: right;
     word-break: break-word;
   }
 
   .thermal-receipt .tr-total {
-    font-size: 7.5pt;
+    font-size: 9.5pt;
     font-weight: 700;
     display: flex;
     justify-content: space-between;
-    margin-top: 1mm;
+    margin-top: 1.5mm;
   }
 
   .thermal-receipt .tr-footer {
     text-align: center;
-    font-size: 5.8pt;
-    margin-top: 1.5mm;
+    font-size: 7.5pt;
+    margin-top: 1.8mm;
+  }
+
+  /* Jarak pemisah antara struk customer & laporan toko dalam satu
+     dokumen cetak yang sama ("berikan jarak beberapa cm"). */
+  .tr-gap {
+    height: 12mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    page-break-inside: avoid;
+  }
+
+  .tr-gap span {
+    font-size: 7pt;
+    letter-spacing: 1px;
+    color: #444;
+    border-top: 0.3mm dashed #999;
+    border-bottom: 0.3mm dashed #999;
+    padding: 1.5mm 0;
+    width: 100%;
+    text-align: center;
   }
 }
