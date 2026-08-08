@@ -5,7 +5,9 @@ const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
   WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
-  MAX_IMAGES: 5,
+  MAX_IMAGES: 10,
+  MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi (BARU - untuk upload gambar tambahan saat edit)
+  IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
 };
 
 // ==============================
@@ -16,6 +18,8 @@ let filteredData = [];
 let currentPage = 1;
 let currentDetailId = null;
 let currentEditId = null;
+let allCustomers = []; // [{ idCustomer, nama, foto1, foto2, foto3 }]
+let selectedEditImages = []; // foto baru yang ditambahkan lewat modal edit (BARU)
 
 // ==============================
 // UTILITAS
@@ -101,8 +105,9 @@ async function loadData() {
     const search = document.getElementById("searchInput").value.trim();
     const dateFilter = document.getElementById("filterDate").value;
     const status = document.getElementById("filterStatus").value;
+    const customerId = document.getElementById("filterCustomer").value;
 
-    const result = await apiGet({ action: "list", search, dateFilter, status });
+    const result = await apiGet({ action: "list", search, dateFilter, status, customerId });
     allData = result.data || [];
     filteredData = allData;
     currentPage = 1;
@@ -115,6 +120,33 @@ async function loadData() {
   } finally {
     loadingEl.classList.remove("show");
   }
+}
+
+// ==============================
+// CUSTOMER (BARU)
+// ==============================
+async function loadCustomers() {
+  try {
+    const result = await apiGet({ action: "customerlist" });
+    allCustomers = result.data || [];
+
+    const select = document.getElementById("filterCustomer");
+    if (select) {
+      const currentValue = select.value;
+      select.innerHTML =
+        '<option value="">Semua Customer</option>' +
+        allCustomers
+          .map((c) => `<option value="${c.idCustomer}">${c.nama} (${c.idCustomer})</option>`)
+          .join("");
+      select.value = currentValue;
+    }
+  } catch (err) {
+    console.error("Gagal memuat daftar customer:", err);
+  }
+}
+
+function findCustomerById(idCustomer) {
+  return allCustomers.find((c) => String(c.idCustomer) === String(idCustomer));
 }
 
 // ==============================
@@ -144,10 +176,17 @@ function renderTable() {
   tableBody.innerHTML = pageRows
     .map((row, idx) => {
       const badgeClass = row.statusCetak === "SUDAH CETAK" ? "badge-success" : "badge-warning";
+      const customer = row.idCustomer ? findCustomerById(row.idCustomer) : null;
+      const customerCell = customer
+        ? `<span class="customer-tag"><i class="fas fa-user"></i> ${customer.nama} <span class="cust-id-tag">${customer.idCustomer}</span></span>`
+        : row.idCustomer
+          ? `<span class="customer-tag"><i class="fas fa-user"></i> ${row.idCustomer}</span>`
+          : "-";
       return `
         <tr>
           <td>${start + idx + 1}</td>
           <td><strong>${row.id}</strong></td>
+          <td>${customerCell}</td>
           <td>${formatDate(row.timestamp)}</td>
           <td>${row.kodeSales || "-"}</td>
           <td>${row.jenisBarang || "-"}</td>
@@ -160,6 +199,7 @@ function renderTable() {
               <button class="btn-icon btn-view" data-id="${row.id}" title="Detail"><i class="fas fa-eye"></i></button>
               <button class="btn-icon btn-edit" data-id="${row.id}" title="Edit"><i class="fas fa-edit"></i></button>
               <button class="btn-icon btn-print" data-id="${row.id}" title="Cetak Ulang"><i class="fas fa-print"></i></button>
+              <button class="btn-icon btn-pdf" data-id="${row.id}" title="Cetak PDF"><i class="fas fa-file-pdf"></i></button>
               <button class="btn-icon btn-delete" data-id="${row.id}" title="Hapus"><i class="fas fa-trash"></i></button>
             </div>
           </td>
@@ -170,6 +210,7 @@ function renderTable() {
   tableBody.querySelectorAll(".btn-view").forEach((b) => b.addEventListener("click", () => showDetail(b.dataset.id)));
   tableBody.querySelectorAll(".btn-edit").forEach((b) => b.addEventListener("click", () => openEditModal(b.dataset.id)));
   tableBody.querySelectorAll(".btn-print").forEach((b) => b.addEventListener("click", () => reprintById(b.dataset.id)));
+  tableBody.querySelectorAll(".btn-pdf").forEach((b) => b.addEventListener("click", () => generatePdf(b.dataset.id)));
   tableBody.querySelectorAll(".btn-delete").forEach((b) => b.addEventListener("click", () => deleteRecord(b.dataset.id)));
 }
 
@@ -185,8 +226,17 @@ function showDetail(id) {
   if (!data) return;
   currentDetailId = id;
 
+  const customer = data.idCustomer ? findCustomerById(data.idCustomer) : null;
+
   const fields = [
     ["fa-id-card", "ID Transaksi", data.id],
+    [
+      "fa-user",
+      "Customer",
+      customer
+        ? `${customer.nama} (${customer.idCustomer}) <button type="button" class="btn-edit-customer-inline" id="btnEditCustomerInline" title="Edit data customer di halaman Data Customer"><i class="fas fa-pen"></i></button>`
+        : data.idCustomer || "-",
+    ],
     ["fa-calendar", "Tanggal & Waktu", formatDate(data.timestamp)],
     ["fa-user-tag", "Kode Sales", data.kodeSales],
     ["fa-box-open", "Jenis Barang", data.jenisBarang],
@@ -195,6 +245,8 @@ function showDetail(id) {
     ["fa-percent", "Kadar Fisik", data.kadarFisik || "0"],
     ["fa-cogs", "Presentase Mesin", (data.presentaseMesin || "0") + "%"],
     ["fa-microchip", "Kadar Mesin", data.kadarMesin || "0"],
+    ["fa-cut", "Presentase Potong", (data.presentasePotong || "0") + "%"],
+    ["fa-cut", "Kadar Potong", data.kadarPotong || "0"],
     ["fa-industry", "Kode Pabrik", data.kodePabrik || "-"],
     ["fa-weight-hanging", "Berat Surat", (data.beratSurat || "0") + " g"],
     ["fa-weight", "Berat Fisik", (data.beratFisik || "0") + " g"],
@@ -222,7 +274,9 @@ function showDetail(id) {
       <div class="detail-value">${formatRupiah(data.hargaTerima)}</div>
     </div>`;
 
-  const images = [1, 2, 3, 4, 5].map((n) => data[`gambar${n}`]).filter(Boolean);
+  const imageSlots = [];
+  for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) imageSlots.push(i);
+  const images = imageSlots.map((n) => data[`gambar${n}`]).filter(Boolean);
   if (images.length) {
     html += `
       <div class="detail-item full-width">
@@ -233,8 +287,28 @@ function showDetail(id) {
       </div>`;
   }
 
+  if (customer) {
+    const customerPhotos = [customer.foto1, customer.foto2, customer.foto3].filter(Boolean);
+    if (customerPhotos.length) {
+      html += `
+        <div class="detail-item full-width">
+          <div class="detail-label"><i class="fas fa-portrait"></i> Foto Customer (${customerPhotos.length})</div>
+          <div class="detail-images">
+            ${customerPhotos.map((url) => `<img src="${getDriveThumbnailUrl(url)}" alt="foto customer" onclick="window.open('${url}','_blank')" />`).join("")}
+          </div>
+        </div>`;
+    }
+  }
+
   document.getElementById("detailContent").innerHTML = html;
   document.getElementById("detailModal").classList.add("show");
+
+  const editCustomerBtn = document.getElementById("btnEditCustomerInline");
+  if (editCustomerBtn && customer) {
+    editCustomerBtn.addEventListener("click", () => {
+      window.location.href = `customer.html?edit=${encodeURIComponent(customer.idCustomer)}`;
+    });
+  }
 }
 
 // ==============================
@@ -248,6 +322,7 @@ const EDIT_FIELDS = [
   { key: "namaToko", label: "Nama Toko", type: "text" },
   { key: "kadarFisik", label: "Kadar Fisik", type: "number" },
   { key: "presentaseMesin", label: "Presentase Mesin (%)", type: "number" },
+  { key: "presentasePotong", label: "Presentase Potong (%)", type: "number" },
   { key: "kodePabrik", label: "Kode Pabrik", type: "text" },
   { key: "beratSurat", label: "Berat Surat (g)", type: "number" },
   { key: "beratFisik", label: "Berat Fisik (g)", type: "number" },
@@ -287,12 +362,154 @@ function openEditModal(id) {
       </div>`;
   }).join("");
 
+  // ---- FOTO TAMBAHAN (BARU) ----
+  // Hitung berapa slot foto yang masih kosong pada data ini, supaya
+  // batas upload jelas (maks. total CONFIG.MAX_IMAGES per transaksi,
+  // termasuk foto lama yang sudah ada).
+  let existingCount = 0;
+  for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) {
+    if (data[`gambar${i}`]) existingCount++;
+  }
+  selectedEditImages = [];
+  renderEditImagePreviews();
+  document.getElementById("editImageUpload").value = "";
+  updateEditImageSlotInfo(existingCount);
+
   document.getElementById("editModal").classList.add("show");
+}
+
+// ==============================
+// FOTO TAMBAHAN SAAT EDIT (BARU)
+// ==============================
+/**
+ * Sama seperti compressImage di script.js (Form Input) - dipakai
+ * supaya foto yang ditambahkan lewat modal edit juga dikompres
+ * sebelum dikirim, bukan hanya foto yang diupload saat input awal.
+ */
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Gagal membaca file gambar"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("File bukan gambar yang valid"));
+      img.onload = () => {
+        let { width, height } = img;
+        const maxDim = CONFIG.MAX_IMAGE_DIMENSION;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", CONFIG.IMAGE_QUALITY);
+        const base64 = dataUrl.split(",")[1];
+        const sizeKb = Math.round((base64.length * 0.75) / 1024);
+
+        resolve({ dataUrl, base64, mimeType: "image/jpeg", sizeKb, fileName: file.name });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function updateEditImageSlotInfo(existingCount) {
+  const remaining = Math.max(CONFIG.MAX_IMAGES - existingCount - selectedEditImages.length, 0);
+  const info = document.getElementById("editImageSlotInfo");
+  if (info) {
+    info.textContent = `${existingCount} foto lama tersimpan, sisa ${remaining} slot`;
+  }
+}
+
+function renderEditImagePreviews() {
+  const container = document.getElementById("editImagePreviewContainer");
+  if (!container) return;
+
+  container.innerHTML = selectedEditImages
+    .map(
+      (img, idx) => `
+      <div class="image-preview-item">
+        <img src="${img.dataUrl}" alt="foto tambahan ${idx + 1}" />
+        <span class="image-size-tag">${img.sizeKb} KB</span>
+        <button type="button" class="remove-image remove-edit-image" data-idx="${idx}" title="Hapus">&times;</button>
+      </div>`,
+    )
+    .join("");
+
+  container.querySelectorAll(".remove-edit-image").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedEditImages.splice(parseInt(btn.dataset.idx, 10), 1);
+      renderEditImagePreviews();
+      const data = findById(currentEditId);
+      let existingCount = 0;
+      if (data) {
+        for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) {
+          if (data[`gambar${i}`]) existingCount++;
+        }
+      }
+      updateEditImageSlotInfo(existingCount);
+    });
+  });
+
+  const countLabel = document.getElementById("selectedEditImageCount");
+  if (countLabel) countLabel.textContent = `${selectedEditImages.length} foto baru dipilih`;
+}
+
+async function handleEditImageSelection(fileList) {
+  const data = findById(currentEditId);
+  let existingCount = 0;
+  if (data) {
+    for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) {
+      if (data[`gambar${i}`]) existingCount++;
+    }
+  }
+
+  const remainingSlots = CONFIG.MAX_IMAGES - existingCount - selectedEditImages.length;
+  const files = Array.from(fileList);
+
+  if (remainingSlots <= 0) {
+    showStatus(`Slot foto sudah penuh (maksimal ${CONFIG.MAX_IMAGES} foto per transaksi).`, false);
+    return;
+  }
+
+  const toProcess = files.slice(0, remainingSlots);
+  if (files.length > remainingSlots) {
+    showStatus(`Hanya ${remainingSlots} foto ditambahkan (sisa slot terbatas).`, false);
+  }
+
+  for (const file of toProcess) {
+    if (!file.type.startsWith("image/")) continue;
+    try {
+      const compressed = await compressImage(file);
+      selectedEditImages.push(compressed);
+    } catch (err) {
+      showStatus(`Gagal memproses foto ${file.name}: ${err.message}`, false);
+    }
+  }
+
+  renderEditImagePreviews();
+  updateEditImageSlotInfo(existingCount);
 }
 
 function recalcForEdit(values) {
   const presentase = parseFloat(values.presentaseMesin) || 0;
   values.kadarMesin = presentase ? ((presentase / 100) * 24).toFixed(2) : "";
+
+  const presentasePotong = parseFloat(values.presentasePotong) || 0;
+  values.kadarPotong = presentasePotong ? ((presentasePotong / 100) * 24).toFixed(2) : "";
 
   const beratSurat = parseFloat(values.beratSurat) || 0;
   const beratFisik = parseFloat(values.beratFisik) || 0;
@@ -322,12 +539,15 @@ async function saveEdit() {
   fd.forEach((v, k) => (values[k] = v));
   values = recalcForEdit(values);
 
+  const images = selectedEditImages.map((img) => ({ data: img.base64, mimeType: img.mimeType }));
+
   document.getElementById("loadingOverlay").classList.add("show");
-  updateLoadingMessage("Menyimpan perubahan...");
+  updateLoadingMessage(images.length ? "Menyimpan perubahan & mengupload foto..." : "Menyimpan perubahan...");
 
   try {
-    await apiPost({ action: "update", id: currentEditId, data: values });
+    await apiPost({ action: "update", id: currentEditId, data: values, images });
     document.getElementById("editModal").classList.remove("show");
+    selectedEditImages = [];
     showStatus(`Data ${currentEditId} berhasil diperbarui.`, true);
     await loadData();
   } catch (err) {
@@ -359,12 +579,13 @@ async function deleteRecord(id) {
 }
 
 // ==============================
-// CETAK ULANG - 2 SESI THERMAL
+// CETAK ULANG - SATU DOKUMEN (customer + toko digabung)
 // ==============================
 function buildCustomerReceipt(id, v) {
   return `
     <div class="thermal-receipt">
-      <div class="tr-title">TOKO EMAS UBER</div>
+      <div class="tr-title">TOKO MAS PANTES UBER</div>
+      <div class="tr-address">Jl. A.H. Nasution No.219, Pasirjati, Kecamatan Ujung Berung, Bandung</div>
       <div class="tr-sub">${id} &middot; ${formatDate(v.timestamp)}</div>
       <hr />
       <div class="tr-row"><span class="k">Kadar Fisik</span><span class="v">${v.kadarFisik || "-"}</span></div>
@@ -379,15 +600,26 @@ function buildCustomerReceipt(id, v) {
 }
 
 function buildStoreReceipt(id, v) {
-  const fields = [
+  // Satu kolom (bukan 2 kolom) - layout 2 kolom memaksa font sangat
+  // kecil sehingga mudah terpotong/tidak terbaca di printer thermal.
+  //
+  // Field identitas (Jenis, Cokim) dipisah dari field detail berikutnya
+  // dengan garis pemisah tersendiri.
+  const identityFields = [
     ["Jenis", v.jenisBarang || "-"],
     ["Cokim", v.cokimTerima || "-"],
+  ];
+
+  const detailFields = [
     ["Surat", v.surat || "-"],
     ["Sales", v.kodeSales || "-"],
     ["Toko", v.namaToko || "-"],
     ["Kadar Fisik", v.kadarFisik || "-"],
     ["Kadar Mesin", v.kadarMesin || "-"],
     ["% Mesin", v.presentaseMesin ? `${v.presentaseMesin}%` : "-"],
+    ["Kode Pabrik", v.kodePabrik || "-"],
+    ["% Potong", v.presentasePotong ? `${v.presentasePotong}%` : "-"],
+    ["Kadar Potong", v.kadarPotong || "-"],
     ["Berat Surat", v.beratSurat ? `${v.beratSurat} g` : "-"],
     ["Berat Fisik", v.beratFisik ? `${v.beratFisik} g` : "-"],
     ["Susut", v.susut ? `${v.susut} g` : "-"],
@@ -398,54 +630,403 @@ function buildStoreReceipt(id, v) {
     ["Harga/gram", formatRupiah(v.hargaPerGram)],
   ];
 
-  const mid = Math.ceil(fields.length / 2);
-  const leftFields = fields.slice(0, mid);
-  const rightFields = fields.slice(mid);
-
-  const renderCol = (colFields) =>
-    colFields
+  const renderRows = (arr) =>
+    arr
       .map(
-        ([label, value]) => `
-        <div class="tr-cell">
-          <span class="cell-k">${label}</span>
-          <span class="cell-v">${value}</span>
-        </div>`,
+        ([label, value]) => `<div class="tr-row"><span class="k">${label}</span><span class="v">${value}</span></div>`,
       )
       .join("");
 
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN NOTA LUAR UBER</div>
-      <div class="tr-sub">${id}</div>
+      <div class="tr-sub">${id} &middot; ${formatDate(v.timestamp)}</div>
       <hr />
-      <div class="tr-columns">
-        <div class="tr-col">${renderCol(leftFields)}</div>
-        <div class="tr-col">${renderCol(rightFields)}</div>
-      </div>
+      ${renderRows(identityFields)}
+      <hr />
+      ${renderRows(detailFields)}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
+      <div class="tr-footer tr-footer-note">Sudah di uji, potong, amplas dan gosok</div>
     </div>`;
 }
 
-function printReceipt(session, id, v) {
-  const printArea = document.getElementById("printArea");
-  printArea.innerHTML = session === "customer" ? buildCustomerReceipt(id, v) : buildStoreReceipt(id, v);
-  window.print();
+/**
+ * Satu dokumen print berisi struk customer + laporan toko sekaligus
+ * (dipisah jarak beberapa cm).
+ */
+function buildCombinedReceipt(id, v) {
+  return `
+    ${buildCustomerReceipt(id, v)}
+    <div class="tr-gap"><span>&#9986; gunting di sini &#9986;</span></div>
+    ${buildStoreReceipt(id, v)}
+  `;
+}
+
+/**
+ * CSS struk thermal untuk printer POS-58 / BM9000 dengan kertas roll
+ * 57mm. Lebar KONTEN sengaja dibuat 48mm (bukan 57-58mm penuh) karena
+ * kepala cetak printer kelas ini rata-rata hanya ~48mm walau kertas
+ * fisiknya 57-58mm - inilah sebab teks selalu terpotong rata di kiri
+ * & kanan ("adar Fisik", "arga/gram") ketika konten dibuat selebar
+ * kertas penuh. "size: ... auto" membuat tinggi halaman mengikuti
+ * panjang konten, bukan angka tetap - menghindari halaman kosong
+ * berlebih maupun konten yang terpotong secara vertikal.
+ */
+const THERMAL_PRINT_STYLE = `
+  @page { size: 48mm auto; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 48mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .thermal-receipt {
+    width: 48mm;
+    /* Padding kiri sengaja jauh lebih besar dari kanan (top right
+       bottom left) - kompensasi "unprintable margin" bawaan
+       hardware/driver printer thermal di tepi kiri kertas, yang
+       tidak bisa dikontrol lewat @page margin. Kalau printer masih
+       memotong sedikit, cukup naikkan angka 5mm di baris ini saja. */
+    padding: 1.5mm 2mm 1.5mm 5mm;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  .thermal-receipt .tr-title { text-align: center; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 1.2mm; }
+  .thermal-receipt .tr-address { text-align: center; font-size: 6.3pt; line-height: 1.3; margin-bottom: 1.5mm; color: #333; }
+  .thermal-receipt .tr-sub { text-align: center; font-size: 8pt; margin-bottom: 1.8mm; }
+  .thermal-receipt hr { border: none; border-top: 0.4mm dashed #000; margin: 1.2mm 0; }
+  .thermal-receipt .tr-row { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8.5pt; line-height: 1.55; }
+  .thermal-receipt .tr-row .k { white-space: nowrap; }
+  .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; word-break: break-word; }
+  .thermal-receipt .tr-total { font-size: 9.5pt; font-weight: 700; display: flex; justify-content: space-between; margin-top: 1.5mm; }
+  .thermal-receipt .tr-footer { text-align: center; font-size: 7.5pt; margin-top: 1.8mm; }
+  .tr-gap { height: 12mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
+  .tr-gap span { font-size: 7pt; letter-spacing: 1px; color: #444; border-top: 0.3mm dashed #999; border-bottom: 0.3mm dashed #999; padding: 1.5mm 0; width: 100%; text-align: center; }
+`;
+
+/**
+ * Mencetak lewat IFRAME TERSEMBUNYI berisi HANYA HTML struk (bukan
+ * lagi menumpang di halaman CRUD lalu menyembunyikan sisanya pakai
+ * @media print). Ini menghilangkan sepenuhnya kemungkinan halaman
+ * Data Management ikut tercetak/terlihat dobel, di browser & driver
+ * printer manapun.
+ */
+function printThermalDocument(bodyHtml) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(
+      `<!doctype html><html><head><meta charset="UTF-8" /><title>Struk</title><style>${THERMAL_PRINT_STYLE}</style></head><body>${bodyHtml}</body></html>`,
+    );
+    doc.close();
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 500);
+      resolve();
+    };
+
+    const triggerPrint = () => {
+      if (done) return;
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error("Gagal mencetak struk:", err);
+      }
+      finish();
+    };
+
+    iframe.onload = () => setTimeout(triggerPrint, 100);
+    setTimeout(triggerPrint, 500);
+  });
+}
+
+async function printReceipt(id, v) {
+  await printThermalDocument(buildCombinedReceipt(id, v));
 }
 
 async function reprintById(id) {
   const data = findById(id);
   if (!data) return;
-  printReceipt("customer", id, data);
-  setTimeout(async () => {
-    printReceipt("store", id, data);
-    try {
-      await apiPost({ action: "markPrinted", id });
-      await loadData();
-    } catch (err) {
-      console.error("Gagal menandai status cetak:", err);
+  await printReceipt(id, data);
+  try {
+    await apiPost({ action: "markPrinted", id });
+    await loadData();
+  } catch (err) {
+    console.error("Gagal menandai status cetak:", err);
+  }
+}
+
+// ==============================
+// CETAK PDF (BARU)
+// ==============================
+/**
+ * Menentukan ukuran gambar (lebar x tinggi, mm) supaya pas di
+ * dalam area halaman tanpa mengubah rasio aspek gambar aslinya.
+ */
+function fitImageToArea(imgWidth, imgHeight, maxWidth, maxHeight) {
+  const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+  return { width: imgWidth * ratio, height: imgHeight * ratio };
+}
+
+function getImageNaturalSize(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error("Gagal membaca ukuran gambar"));
+    img.src = dataUrl;
+  });
+}
+
+async function generatePdf(id) {
+  const data = findById(id);
+  if (!data) {
+    showStatus("Data tidak ditemukan untuk dicetak PDF.", false);
+    return;
+  }
+
+  document.getElementById("loadingOverlay").classList.add("show");
+  updateLoadingMessage("Mengambil data & gambar dari server...");
+
+  try {
+    const result = await apiGet({ action: "getimages", id });
+    const images = result.images || [];
+    const customerPhotos = result.customerPhotos || [];
+    const customer = data.idCustomer ? findCustomerById(data.idCustomer) : null;
+
+    updateLoadingMessage("Menyusun file PDF...");
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+
+    // ------- HALAMAN 1: COVER (ID NOTLU + hari & tanggal) -------
+    const tanggalObj = data.timestamp ? new Date(data.timestamp) : new Date();
+    const hariTanggal = isNaN(tanggalObj)
+      ? "-"
+      : tanggalObj.toLocaleDateString("id-ID", {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("LAPORAN TRANSAKSI EMAS UBER", pageWidth / 2, 40, { align: "center" });
+
+    doc.setDrawColor(212, 175, 55); // gold
+    doc.setLineWidth(0.8);
+    doc.line(30, 46, pageWidth - 30, 46);
+
+    doc.setFontSize(22);
+    doc.text(String(data.id || id), pageWidth / 2, 70, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(13);
+    doc.text(hariTanggal, pageWidth / 2, 82, { align: "center" });
+
+    if (customer) {
+      doc.setFontSize(11);
+      doc.text(`Customer: ${customer.nama} (${customer.idCustomer})`, pageWidth / 2, 92, {
+        align: "center",
+      });
     }
-  }, 700);
+
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 120);
+    doc.text(
+      `Halaman berikutnya: detail transaksi, detail customer, dan ${images.length} lampiran foto`,
+      pageWidth / 2,
+      pageHeight - 20,
+      { align: "center", maxWidth: pageWidth - margin * 2 },
+    );
+    doc.setTextColor(0, 0, 0);
+
+    // ------- HELPER: render daftar label-value dengan wrap otomatis -------
+    const labelWidth = 52;
+    function drawSectionTitle(title, y) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text(title, margin, y);
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y + 2.5, pageWidth - margin, y + 2.5);
+      return y + 10;
+    }
+
+    function drawFieldRows(fields, startY) {
+      let y = startY;
+      doc.setFontSize(10);
+      fields.forEach(([label, value]) => {
+        const text = value === undefined || value === null || value === "" ? "-" : String(value);
+        const lines = doc.splitTextToSize(text, pageWidth - margin * 2 - labelWidth);
+        const rowHeight = 6 * Math.max(1, lines.length);
+
+        if (y + rowHeight > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.text(String(label), margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(lines, margin + labelWidth, y);
+        y += rowHeight;
+      });
+      return y;
+    }
+
+    // ------- HALAMAN 2: DETAIL TRANSAKSI (lengkap) -------
+    doc.addPage();
+    let y = drawSectionTitle("DETAIL TRANSAKSI", margin);
+
+    const transaksiFields = [
+      ["ID Transaksi", data.id],
+      ["Tanggal & Waktu", formatDate(data.timestamp)],
+      ["Kode Sales", data.kodeSales],
+      ["Cokim Terima", data.cokimTerima],
+      ["Jenis Barang", data.jenisBarang],
+      ["Surat", data.surat],
+      ["Nama Toko", data.namaToko],
+      ["Kadar Fisik", data.kadarFisik],
+      ["Presentase Mesin", data.presentaseMesin !== "" && data.presentaseMesin != null ? `${data.presentaseMesin}%` : "-"],
+      ["Kadar Mesin", data.kadarMesin],
+      ["Presentase Potong", data.presentasePotong !== "" && data.presentasePotong != null ? `${data.presentasePotong}%` : "-"],
+      ["Kadar Potong", data.kadarPotong],
+      ["Kode Pabrik", data.kodePabrik],
+      ["Berat Surat", data.beratSurat !== "" && data.beratSurat != null ? `${data.beratSurat} g` : "-"],
+      ["Berat Fisik", data.beratFisik !== "" && data.beratFisik != null ? `${data.beratFisik} g` : "-"],
+      ["Susut", data.susut !== "" && data.susut != null ? `${data.susut} g` : "-"],
+      ["Berat Terima", data.beratTerima !== "" && data.beratTerima != null ? `${data.beratTerima} g` : "-"],
+      ["Kondisi Perhiasan", data.kondisiPerhiasan],
+      ["Model", data.model],
+      ["Rate Terima", data.rateTerima],
+      ["Harga/gram", formatRupiah(data.hargaPerGram)],
+      ["Harga Terima", formatRupiah(data.hargaTerima)],
+      ["Status Cetak", data.statusCetak],
+    ];
+
+    y = drawFieldRows(transaksiFields, y);
+
+    // ------- HALAMAN BERIKUTNYA: DETAIL CUSTOMER + FOTO CUSTOMER -------
+    doc.addPage();
+    y = drawSectionTitle("DETAIL CUSTOMER", margin);
+
+    if (customer) {
+      y = drawFieldRows(
+        [
+          ["ID Customer", customer.idCustomer],
+          ["Nama Customer", customer.nama],
+          ["Jumlah Foto", customerPhotos.length],
+        ],
+        y,
+      );
+
+      if (customerPhotos.length) {
+        y += 4;
+        if (y > pageHeight - margin - 60) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text("Foto Customer", margin, y);
+        y += 6;
+
+        const thumbBox = 58; // mm, area maksimum per foto (persegi)
+        const gap = 6;
+        let x = margin;
+
+        for (let i = 0; i < customerPhotos.length; i++) {
+          const img = customerPhotos[i];
+          const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
+
+          if (x + thumbBox > pageWidth - margin) {
+            x = margin;
+            y += thumbBox + gap;
+          }
+          if (y + thumbBox > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+            x = margin;
+          }
+
+          try {
+            const natural = await getImageNaturalSize(dataUrl);
+            const fitted = fitImageToArea(natural.width, natural.height, thumbBox, thumbBox);
+            const offsetX = x + (thumbBox - fitted.width) / 2;
+            const offsetY = y + (thumbBox - fitted.height) / 2;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.2);
+            doc.rect(x, y, thumbBox, thumbBox);
+            doc.addImage(dataUrl, "JPEG", offsetX, offsetY, fitted.width, fitted.height);
+          } catch (imgErr) {
+            console.error("Gagal menempel foto customer ke PDF:", imgErr);
+          }
+
+          x += thumbBox + gap;
+        }
+        y += thumbBox + 8;
+      } else {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.text("Tidak ada foto customer tersimpan.", margin, y);
+        y += 8;
+      }
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("Transaksi ini tidak terhubung dengan data customer manapun.", margin, y);
+    }
+
+    // ------- HALAMAN BERIKUTNYA: 1 FOTO ITEM TRANSAKSI PER HALAMAN -------
+    const maxWidth = pageWidth - margin * 2;
+    const maxHeight = pageHeight - margin * 2 - 14; // sisakan ruang untuk label atas
+
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
+      const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
+
+      doc.addPage();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(`${data.id || id} - Foto Barang ${i + 1} / ${images.length}`, pageWidth / 2, margin, {
+        align: "center",
+      });
+
+      try {
+        const natural = await getImageNaturalSize(dataUrl);
+        const fitted = fitImageToArea(natural.width, natural.height, maxWidth, maxHeight);
+        const x = (pageWidth - fitted.width) / 2;
+        const yImg = margin + 8 + (maxHeight - fitted.height) / 2;
+        doc.addImage(dataUrl, "JPEG", x, yImg, fitted.width, fitted.height);
+      } catch (imgErr) {
+        console.error("Gagal menempel gambar ke PDF:", imgErr);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text("Gagal memuat gambar ini.", pageWidth / 2, margin + 30, { align: "center" });
+      }
+    }
+
+    doc.save(`${data.id || id}.pdf`);
+    showStatus(`PDF untuk ${data.id || id} berhasil dibuat.`, true);
+  } catch (err) {
+    console.error(err);
+    showStatus(`Gagal membuat PDF: ${err.message}`, false, 7000);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("show");
+  }
 }
 
 // ==============================
@@ -459,11 +1040,13 @@ document.getElementById("searchInput").addEventListener("input", () => {
 
 document.getElementById("filterDate").addEventListener("change", loadData);
 document.getElementById("filterStatus").addEventListener("change", loadData);
+document.getElementById("filterCustomer").addEventListener("change", loadData);
 
 document.getElementById("resetFilter").addEventListener("click", () => {
   document.getElementById("searchInput").value = "";
   document.getElementById("filterDate").value = "";
   document.getElementById("filterStatus").value = "";
+  document.getElementById("filterCustomer").value = "";
   loadData();
 });
 
@@ -494,17 +1077,27 @@ document.getElementById("detailModal").addEventListener("click", (e) => {
 
 document.getElementById("closeEditModal").addEventListener("click", () => {
   document.getElementById("editModal").classList.remove("show");
+  selectedEditImages = [];
 });
 document.getElementById("editModal").addEventListener("click", (e) => {
   if (e.target.id === "editModal") e.currentTarget.classList.remove("show");
 });
 document.getElementById("cancelEdit").addEventListener("click", () => {
   document.getElementById("editModal").classList.remove("show");
+  selectedEditImages = [];
 });
 document.getElementById("saveEdit").addEventListener("click", saveEdit);
 
+document.getElementById("editImageUpload").addEventListener("change", (e) => {
+  handleEditImageSelection(e.target.files);
+  e.target.value = "";
+});
+
 document.getElementById("printFromDetail").addEventListener("click", () => {
   if (currentDetailId) reprintById(currentDetailId);
+});
+document.getElementById("pdfFromDetail").addEventListener("click", () => {
+  if (currentDetailId) generatePdf(currentDetailId);
 });
 document.getElementById("editFromDetail").addEventListener("click", () => {
   if (currentDetailId) {
@@ -516,7 +1109,8 @@ document.getElementById("editFromDetail").addEventListener("click", () => {
 // ==============================
 // INIT
 // ==============================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("currentYear").textContent = new Date().getFullYear();
+  await loadCustomers();
   loadData();
 });
