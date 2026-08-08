@@ -3,9 +3,11 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxQ8omiyDaox49x-9trt8R313d1eXIffSjF5Crm4xIyAbIiIGD3p8DwIusLKuB1Nqc/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
-  MAX_IMAGES: 5,
+  MAX_IMAGES: 8,
+  MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi (BARU - untuk upload gambar tambahan saat edit)
+  IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
 };
 
 // ==============================
@@ -17,6 +19,7 @@ let currentPage = 1;
 let currentDetailId = null;
 let currentEditId = null;
 let allCustomers = []; // [{ idCustomer, nama, foto1, foto2, foto3 }]
+let selectedEditImages = []; // foto baru yang ditambahkan lewat modal edit (BARU)
 
 // ==============================
 // UTILITAS
@@ -236,6 +239,8 @@ function showDetail(id) {
     ["fa-percent", "Kadar Fisik", data.kadarFisik || "0"],
     ["fa-cogs", "Presentase Mesin", (data.presentaseMesin || "0") + "%"],
     ["fa-microchip", "Kadar Mesin", data.kadarMesin || "0"],
+    ["fa-cut", "Presentase Potong", (data.presentasePotong || "0") + "%"],
+    ["fa-cut", "Kadar Potong", data.kadarPotong || "0"],
     ["fa-industry", "Kode Pabrik", data.kodePabrik || "-"],
     ["fa-weight-hanging", "Berat Surat", (data.beratSurat || "0") + " g"],
     ["fa-weight", "Berat Fisik", (data.beratFisik || "0") + " g"],
@@ -302,6 +307,7 @@ const EDIT_FIELDS = [
   { key: "namaToko", label: "Nama Toko", type: "text" },
   { key: "kadarFisik", label: "Kadar Fisik", type: "number" },
   { key: "presentaseMesin", label: "Presentase Mesin (%)", type: "number" },
+  { key: "presentasePotong", label: "Presentase Potong (%)", type: "number" },
   { key: "kodePabrik", label: "Kode Pabrik", type: "text" },
   { key: "beratSurat", label: "Berat Surat (g)", type: "number" },
   { key: "beratFisik", label: "Berat Fisik (g)", type: "number" },
@@ -341,12 +347,154 @@ function openEditModal(id) {
       </div>`;
   }).join("");
 
+  // ---- FOTO TAMBAHAN (BARU) ----
+  // Hitung berapa slot foto yang masih kosong pada data ini, supaya
+  // batas upload jelas (maks. total CONFIG.MAX_IMAGES per transaksi,
+  // termasuk foto lama yang sudah ada).
+  let existingCount = 0;
+  for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) {
+    if (data[`gambar${i}`]) existingCount++;
+  }
+  selectedEditImages = [];
+  renderEditImagePreviews();
+  document.getElementById("editImageUpload").value = "";
+  updateEditImageSlotInfo(existingCount);
+
   document.getElementById("editModal").classList.add("show");
+}
+
+// ==============================
+// FOTO TAMBAHAN SAAT EDIT (BARU)
+// ==============================
+/**
+ * Sama seperti compressImage di script.js (Form Input) - dipakai
+ * supaya foto yang ditambahkan lewat modal edit juga dikompres
+ * sebelum dikirim, bukan hanya foto yang diupload saat input awal.
+ */
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Gagal membaca file gambar"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("File bukan gambar yang valid"));
+      img.onload = () => {
+        let { width, height } = img;
+        const maxDim = CONFIG.MAX_IMAGE_DIMENSION;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", CONFIG.IMAGE_QUALITY);
+        const base64 = dataUrl.split(",")[1];
+        const sizeKb = Math.round((base64.length * 0.75) / 1024);
+
+        resolve({ dataUrl, base64, mimeType: "image/jpeg", sizeKb, fileName: file.name });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function updateEditImageSlotInfo(existingCount) {
+  const remaining = Math.max(CONFIG.MAX_IMAGES - existingCount - selectedEditImages.length, 0);
+  const info = document.getElementById("editImageSlotInfo");
+  if (info) {
+    info.textContent = `${existingCount} foto lama tersimpan, sisa ${remaining} slot`;
+  }
+}
+
+function renderEditImagePreviews() {
+  const container = document.getElementById("editImagePreviewContainer");
+  if (!container) return;
+
+  container.innerHTML = selectedEditImages
+    .map(
+      (img, idx) => `
+      <div class="image-preview-item">
+        <img src="${img.dataUrl}" alt="foto tambahan ${idx + 1}" />
+        <span class="image-size-tag">${img.sizeKb} KB</span>
+        <button type="button" class="remove-edit-image" data-idx="${idx}" title="Hapus">&times;</button>
+      </div>`,
+    )
+    .join("");
+
+  container.querySelectorAll(".remove-edit-image").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedEditImages.splice(parseInt(btn.dataset.idx, 10), 1);
+      renderEditImagePreviews();
+      const data = findById(currentEditId);
+      let existingCount = 0;
+      if (data) {
+        for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) {
+          if (data[`gambar${i}`]) existingCount++;
+        }
+      }
+      updateEditImageSlotInfo(existingCount);
+    });
+  });
+
+  const countLabel = document.getElementById("selectedEditImageCount");
+  if (countLabel) countLabel.textContent = `${selectedEditImages.length} foto baru dipilih`;
+}
+
+async function handleEditImageSelection(fileList) {
+  const data = findById(currentEditId);
+  let existingCount = 0;
+  if (data) {
+    for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) {
+      if (data[`gambar${i}`]) existingCount++;
+    }
+  }
+
+  const remainingSlots = CONFIG.MAX_IMAGES - existingCount - selectedEditImages.length;
+  const files = Array.from(fileList);
+
+  if (remainingSlots <= 0) {
+    showStatus(`Slot foto sudah penuh (maksimal ${CONFIG.MAX_IMAGES} foto per transaksi).`, false);
+    return;
+  }
+
+  const toProcess = files.slice(0, remainingSlots);
+  if (files.length > remainingSlots) {
+    showStatus(`Hanya ${remainingSlots} foto ditambahkan (sisa slot terbatas).`, false);
+  }
+
+  for (const file of toProcess) {
+    if (!file.type.startsWith("image/")) continue;
+    try {
+      const compressed = await compressImage(file);
+      selectedEditImages.push(compressed);
+    } catch (err) {
+      showStatus(`Gagal memproses foto ${file.name}: ${err.message}`, false);
+    }
+  }
+
+  renderEditImagePreviews();
+  updateEditImageSlotInfo(existingCount);
 }
 
 function recalcForEdit(values) {
   const presentase = parseFloat(values.presentaseMesin) || 0;
   values.kadarMesin = presentase ? ((presentase / 100) * 24).toFixed(2) : "";
+
+  const presentasePotong = parseFloat(values.presentasePotong) || 0;
+  values.kadarPotong = presentasePotong ? ((presentasePotong / 100) * 24).toFixed(2) : "";
 
   const beratSurat = parseFloat(values.beratSurat) || 0;
   const beratFisik = parseFloat(values.beratFisik) || 0;
@@ -376,12 +524,15 @@ async function saveEdit() {
   fd.forEach((v, k) => (values[k] = v));
   values = recalcForEdit(values);
 
+  const images = selectedEditImages.map((img) => ({ data: img.base64, mimeType: img.mimeType }));
+
   document.getElementById("loadingOverlay").classList.add("show");
-  updateLoadingMessage("Menyimpan perubahan...");
+  updateLoadingMessage(images.length ? "Menyimpan perubahan & mengupload foto..." : "Menyimpan perubahan...");
 
   try {
-    await apiPost({ action: "update", id: currentEditId, data: values });
+    await apiPost({ action: "update", id: currentEditId, data: values, images });
     document.getElementById("editModal").classList.remove("show");
+    selectedEditImages = [];
     showStatus(`Data ${currentEditId} berhasil diperbarui.`, true);
     await loadData();
   } catch (err) {
@@ -450,6 +601,9 @@ function buildStoreReceipt(id, v) {
     ["Kadar Fisik", v.kadarFisik || "-"],
     ["Kadar Mesin", v.kadarMesin || "-"],
     ["% Mesin", v.presentaseMesin ? `${v.presentaseMesin}%` : "-"],
+    ["Kode Pabrik", v.kodePabrik || "-"],
+    ["% Potong", v.presentasePotong ? `${v.presentasePotong}%` : "-"],
+    ["Kadar Potong", v.kadarPotong || "-"],
     ["Berat Surat", v.beratSurat ? `${v.beratSurat} g` : "-"],
     ["Berat Fisik", v.beratFisik ? `${v.beratFisik} g` : "-"],
     ["Susut", v.susut ? `${v.susut} g` : "-"],
@@ -477,6 +631,7 @@ function buildStoreReceipt(id, v) {
       ${renderRows(detailFields)}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
+      <div class="tr-footer tr-footer-note">Sudah di uji, potong, amplas dan gosok</div>
     </div>`;
 }
 
@@ -730,6 +885,8 @@ async function generatePdf(id) {
       ["Kadar Fisik", data.kadarFisik],
       ["Presentase Mesin", data.presentaseMesin !== "" && data.presentaseMesin != null ? `${data.presentaseMesin}%` : "-"],
       ["Kadar Mesin", data.kadarMesin],
+      ["Presentase Potong", data.presentasePotong !== "" && data.presentasePotong != null ? `${data.presentasePotong}%` : "-"],
+      ["Kadar Potong", data.kadarPotong],
       ["Kode Pabrik", data.kodePabrik],
       ["Berat Surat", data.beratSurat !== "" && data.beratSurat != null ? `${data.beratSurat} g` : "-"],
       ["Berat Fisik", data.beratFisik !== "" && data.beratFisik != null ? `${data.beratFisik} g` : "-"],
@@ -903,14 +1060,21 @@ document.getElementById("detailModal").addEventListener("click", (e) => {
 
 document.getElementById("closeEditModal").addEventListener("click", () => {
   document.getElementById("editModal").classList.remove("show");
+  selectedEditImages = [];
 });
 document.getElementById("editModal").addEventListener("click", (e) => {
   if (e.target.id === "editModal") e.currentTarget.classList.remove("show");
 });
 document.getElementById("cancelEdit").addEventListener("click", () => {
   document.getElementById("editModal").classList.remove("show");
+  selectedEditImages = [];
 });
 document.getElementById("saveEdit").addEventListener("click", saveEdit);
+
+document.getElementById("editImageUpload").addEventListener("change", (e) => {
+  handleEditImageSelection(e.target.files);
+  e.target.value = "";
+});
 
 document.getElementById("printFromDetail").addEventListener("click", () => {
   if (currentDetailId) reprintById(currentDetailId);
