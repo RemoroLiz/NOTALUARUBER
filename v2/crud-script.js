@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxF64rJ5hoOYV084Y2MDUOs9dia8TxIKBmEYLptfG1bPdEnICRDaVkR4YcWg-umzuNY/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 8,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi (BARU - untuk upload gambar tambahan saat edit)
@@ -150,6 +150,181 @@ function findCustomerById(idCustomer) {
 }
 
 // ==============================
+// EDIT CUSTOMER (BARU)
+// ==============================
+let currentEditCustomerId = null;
+let selectedEditCustomerImages = []; // foto baru yang akan ditambahkan
+let editCustomerRemoveSlots = []; // slot foto lama (1/2/3) yang ditandai untuk dihapus
+const MAX_CUSTOMER_PHOTOS = 3;
+
+function openEditCustomerModal(idCustomer) {
+  const customer = findCustomerById(idCustomer);
+  if (!customer) {
+    showStatus("Data customer tidak ditemukan.", false);
+    return;
+  }
+
+  currentEditCustomerId = idCustomer;
+  selectedEditCustomerImages = [];
+  editCustomerRemoveSlots = [];
+
+  document.getElementById("editCustomerName").value = customer.nama || "";
+  document.getElementById("editCustomerIdDisplay").value = customer.idCustomer;
+
+  renderEditCustomerExistingPhotos(customer);
+  renderEditCustomerImagePreviews();
+  document.getElementById("editCustomerImageUpload").value = "";
+  updateEditCustomerSlotInfo();
+
+  document.getElementById("editCustomerModal").classList.add("show");
+}
+
+function renderEditCustomerExistingPhotos(customer) {
+  const container = document.getElementById("editCustomerExistingPhotos");
+  if (!container) return;
+
+  const slots = [1, 2, 3]
+    .map((n) => ({ slot: n, url: customer[`foto${n}`] }))
+    .filter((s) => s.url);
+
+  if (!slots.length) {
+    container.innerHTML = '<p class="edit-image-hint">Belum ada foto tersimpan.</p>';
+    return;
+  }
+
+  container.innerHTML = slots
+    .map(
+      (s) => `
+      <div class="image-preview-item edit-customer-existing-item" data-slot="${s.slot}">
+        <img src="${getDriveThumbnailUrl(s.url)}" alt="foto customer ${s.slot}" />
+        <button type="button" class="remove-image remove-existing-customer-photo" data-slot="${s.slot}" title="Hapus foto ini">&times;</button>
+      </div>`,
+    )
+    .join("");
+
+  container.querySelectorAll(".remove-existing-customer-photo").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const slot = parseInt(btn.dataset.slot, 10);
+      const item = btn.closest(".edit-customer-existing-item");
+      if (editCustomerRemoveSlots.includes(slot)) {
+        editCustomerRemoveSlots = editCustomerRemoveSlots.filter((s) => s !== slot);
+        item.classList.remove("marked-for-removal");
+      } else {
+        editCustomerRemoveSlots.push(slot);
+        item.classList.add("marked-for-removal");
+      }
+      updateEditCustomerSlotInfo();
+    });
+  });
+}
+
+function updateEditCustomerSlotInfo() {
+  const customer = findCustomerById(currentEditCustomerId);
+  if (!customer) return;
+  const stillExisting = [1, 2, 3].filter(
+    (n) => customer[`foto${n}`] && !editCustomerRemoveSlots.includes(n),
+  ).length;
+  const remaining = Math.max(MAX_CUSTOMER_PHOTOS - stillExisting - selectedEditCustomerImages.length, 0);
+  const info = document.getElementById("editCustomerImageSlotInfo");
+  if (info) info.textContent = `Sisa ${remaining} slot`;
+}
+
+function renderEditCustomerImagePreviews() {
+  const container = document.getElementById("editCustomerImagePreviewContainer");
+  if (!container) return;
+
+  container.innerHTML = selectedEditCustomerImages
+    .map(
+      (img, idx) => `
+      <div class="image-preview-item">
+        <img src="${img.dataUrl}" alt="foto customer baru ${idx + 1}" />
+        <span class="image-size-tag">${img.sizeKb} KB</span>
+        <button type="button" class="remove-image remove-new-customer-image" data-idx="${idx}" title="Hapus">&times;</button>
+      </div>`,
+    )
+    .join("");
+
+  container.querySelectorAll(".remove-new-customer-image").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedEditCustomerImages.splice(parseInt(btn.dataset.idx, 10), 1);
+      renderEditCustomerImagePreviews();
+      updateEditCustomerSlotInfo();
+    });
+  });
+
+  const countLabel = document.getElementById("selectedEditCustomerImageCount");
+  if (countLabel) countLabel.textContent = `${selectedEditCustomerImages.length} foto baru dipilih`;
+}
+
+async function handleEditCustomerImageSelection(fileList) {
+  const customer = findCustomerById(currentEditCustomerId);
+  const stillExisting = customer
+    ? [1, 2, 3].filter((n) => customer[`foto${n}`] && !editCustomerRemoveSlots.includes(n)).length
+    : 0;
+  const remainingSlots = MAX_CUSTOMER_PHOTOS - stillExisting - selectedEditCustomerImages.length;
+  const files = Array.from(fileList);
+
+  if (remainingSlots <= 0) {
+    showStatus(`Slot foto customer sudah penuh (maksimal ${MAX_CUSTOMER_PHOTOS} foto).`, false);
+    return;
+  }
+
+  const toProcess = files.slice(0, remainingSlots);
+  if (files.length > remainingSlots) {
+    showStatus(`Hanya ${remainingSlots} foto ditambahkan (sisa slot terbatas).`, false);
+  }
+
+  for (const file of toProcess) {
+    if (!file.type.startsWith("image/")) continue;
+    try {
+      const compressed = await compressImage(file);
+      selectedEditCustomerImages.push(compressed);
+    } catch (err) {
+      showStatus(`Gagal memproses foto ${file.name}: ${err.message}`, false);
+    }
+  }
+
+  renderEditCustomerImagePreviews();
+  updateEditCustomerSlotInfo();
+}
+
+async function saveEditCustomer() {
+  if (!currentEditCustomerId) return;
+
+  const nama = document.getElementById("editCustomerName").value.trim();
+  if (!nama) {
+    showStatus("Nama customer wajib diisi.", false);
+    return;
+  }
+
+  const photos = selectedEditCustomerImages.map((img) => ({ data: img.base64, mimeType: img.mimeType }));
+
+  document.getElementById("loadingOverlay").classList.add("show");
+  updateLoadingMessage("Menyimpan perubahan customer...");
+
+  try {
+    await apiPost({
+      action: "customerupdate",
+      id: currentEditCustomerId,
+      nama,
+      removeSlots: editCustomerRemoveSlots,
+      photos,
+    });
+
+    document.getElementById("editCustomerModal").classList.remove("show");
+    showStatus(`Data customer ${currentEditCustomerId} berhasil diperbarui.`, true);
+
+    await loadCustomers();
+    renderTable();
+    if (currentDetailId) showDetail(currentDetailId);
+  } catch (err) {
+    showStatus(`Gagal menyimpan perubahan customer: ${err.message}`, false, 7000);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("show");
+  }
+}
+
+// ==============================
 // RENDER TABEL & PAGINASI
 // ==============================
 function renderTable() {
@@ -230,7 +405,13 @@ function showDetail(id) {
 
   const fields = [
     ["fa-id-card", "ID Transaksi", data.id],
-    ["fa-user", "Customer", customer ? `${customer.nama} (${customer.idCustomer})` : data.idCustomer || "-"],
+    [
+      "fa-user",
+      "Customer",
+      customer
+        ? `${customer.nama} (${customer.idCustomer}) <button type="button" class="btn-edit-customer-inline" id="btnEditCustomerInline" title="Edit data customer"><i class="fas fa-pen"></i></button>`
+        : data.idCustomer || "-",
+    ],
     ["fa-calendar", "Tanggal & Waktu", formatDate(data.timestamp)],
     ["fa-user-tag", "Kode Sales", data.kodeSales],
     ["fa-box-open", "Jenis Barang", data.jenisBarang],
@@ -268,7 +449,9 @@ function showDetail(id) {
       <div class="detail-value">${formatRupiah(data.hargaTerima)}</div>
     </div>`;
 
-  const images = [1, 2, 3, 4, 5].map((n) => data[`gambar${n}`]).filter(Boolean);
+  const imageSlots = [];
+  for (let i = 1; i <= CONFIG.MAX_IMAGES; i++) imageSlots.push(i);
+  const images = imageSlots.map((n) => data[`gambar${n}`]).filter(Boolean);
   if (images.length) {
     html += `
       <div class="detail-item full-width">
@@ -294,6 +477,11 @@ function showDetail(id) {
 
   document.getElementById("detailContent").innerHTML = html;
   document.getElementById("detailModal").classList.add("show");
+
+  const editCustomerBtn = document.getElementById("btnEditCustomerInline");
+  if (editCustomerBtn && customer) {
+    editCustomerBtn.addEventListener("click", () => openEditCustomerModal(customer.idCustomer));
+  }
 }
 
 // ==============================
@@ -429,7 +617,7 @@ function renderEditImagePreviews() {
       <div class="image-preview-item">
         <img src="${img.dataUrl}" alt="foto tambahan ${idx + 1}" />
         <span class="image-size-tag">${img.sizeKb} KB</span>
-        <button type="button" class="remove-edit-image" data-idx="${idx}" title="Hapus">&times;</button>
+        <button type="button" class="remove-image remove-edit-image" data-idx="${idx}" title="Hapus">&times;</button>
       </div>`,
     )
     .join("");
@@ -1073,6 +1261,22 @@ document.getElementById("saveEdit").addEventListener("click", saveEdit);
 
 document.getElementById("editImageUpload").addEventListener("change", (e) => {
   handleEditImageSelection(e.target.files);
+  e.target.value = "";
+});
+
+// ---- MODAL EDIT CUSTOMER (BARU) ----
+document.getElementById("closeEditCustomerModal").addEventListener("click", () => {
+  document.getElementById("editCustomerModal").classList.remove("show");
+});
+document.getElementById("editCustomerModal").addEventListener("click", (e) => {
+  if (e.target.id === "editCustomerModal") e.currentTarget.classList.remove("show");
+});
+document.getElementById("cancelEditCustomer").addEventListener("click", () => {
+  document.getElementById("editCustomerModal").classList.remove("show");
+});
+document.getElementById("saveEditCustomer").addEventListener("click", saveEditCustomer);
+document.getElementById("editCustomerImageUpload").addEventListener("change", (e) => {
+  handleEditCustomerImageSelection(e.target.files);
   e.target.value = "";
 });
 
