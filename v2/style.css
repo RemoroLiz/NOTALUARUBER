@@ -502,6 +502,48 @@ header h1 i {
   padding: 2px 0;
 }
 
+.edit-customer-existing-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.edit-customer-existing-item.marked-for-removal {
+  opacity: 0.4;
+  border: 2px solid var(--error);
+}
+
+.edit-customer-existing-item.marked-for-removal::after {
+  content: "Akan dihapus";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(198, 40, 40, 0.55);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 4px;
+}
+
+.btn-edit-customer-inline {
+  border: none;
+  background: var(--border);
+  color: var(--navy);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  cursor: pointer;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.btn-edit-customer-inline:hover { background: var(--gold); color: #fff; }
+
 .upload-controls {
   display: flex;
   align-items: center;
