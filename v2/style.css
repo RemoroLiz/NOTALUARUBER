@@ -911,130 +911,13 @@ footer p { margin-bottom: 4px; }
   .filter-select { flex: 1; }
 }
 
+
 /* ============================================================
-   PRINT - STRUK THERMAL 57mm
-   Satu dokumen cetak berisi 2 struk sekaligus (customer + toko),
-   dipisahkan jarak beberapa cm (.tr-gap) - hanya SATU window.print()
-   yang dipanggil, jadi hanya 1 print job (tidak ada lagi 2 dialog
-   cetak terpisah yang rawan tertukar/terpotong antar browser).
+   PRINT - STRUK THERMAL (POS-58, kertas roll 58mm)
+   Cetak struk TIDAK LAGI memakai #printArea + @media print di sini.
+   Sekarang script.js / crud-script.js membuat iframe tersembunyi
+   berisi HTML + CSS-nya sendiri lalu mencetak dari iframe itu (lihat
+   fungsi printThermalDocument). Ini menghindari halaman admin ikut
+   tercetak/terlihat dobel di browser & driver printer yang berbeda-
+   beda perilakunya terhadap @media print.
    ============================================================ */
-#printArea { display: none; }
-
-@media print {
-  @page {
-    /* PENTING: tinggi TIDAK boleh dikunci pendek (mis. 30mm) - kalau
-       konten lebih tinggi dari nilai ini, browser akan memecahnya jadi
-       banyak halaman berulang (ini penyebab bug "banyak halaman").
-       Untuk kertas roll thermal, beri tinggi longgar; printer roll
-       akan memotong kertas mengikuti panjang konten asli, bukan
-       mengikuti angka tinggi halaman ini. Dinaikkan jadi 260mm karena
-       sekarang 1 dokumen berisi 2 struk sekaligus. */
-    size: 57mm 260mm;
-    margin: 0;
-  }
-
-  html, body {
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* PENTING: pakai display:none, BUKAN cuma visibility:hidden.
-     visibility:hidden tetap menghitung tinggi elemen di layout, jadi
-     seluruh form/tabel/modal yang disembunyikan tetap "memakan ruang"
-     vertikal dan menghasilkan halaman kosong tambahan setelah struk.
-     display:none benar-benar mengeluarkannya dari alur halaman. */
-  body > *:not(#printArea) {
-    display: none !important;
-  }
-
-  #printArea {
-    display: block !important;
-    position: static;
-    width: 57mm;
-  }
-
-  .thermal-receipt {
-    width: 57mm;
-    padding: 2mm 2.5mm;
-    font-family: "Segoe UI", Arial, sans-serif;
-    color: #000;
-    page-break-after: avoid;
-    page-break-inside: avoid;
-  }
-
-  .thermal-receipt .tr-title {
-    text-align: center;
-    font-size: 10.5pt;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    margin-bottom: 1.2mm;
-  }
-
-  .thermal-receipt .tr-sub {
-    text-align: center;
-    font-size: 8pt;
-    margin-bottom: 1.8mm;
-  }
-
-  .thermal-receipt hr {
-    border: none;
-    border-top: 0.4mm dashed #000;
-    margin: 1.2mm 0;
-  }
-
-  .thermal-receipt .tr-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 2mm;
-    font-size: 8.5pt;
-    line-height: 1.55;
-  }
-
-  .thermal-receipt .tr-row .k {
-    color: #000;
-    white-space: nowrap;
-  }
-
-  .thermal-receipt .tr-row .v {
-    font-weight: 700;
-    text-align: right;
-    word-break: break-word;
-  }
-
-  .thermal-receipt .tr-total {
-    font-size: 9.5pt;
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5mm;
-  }
-
-  .thermal-receipt .tr-footer {
-    text-align: center;
-    font-size: 7.5pt;
-    margin-top: 1.8mm;
-  }
-
-  /* Jarak pemisah antara struk customer & laporan toko dalam satu
-     dokumen cetak yang sama ("berikan jarak beberapa cm"). */
-  .tr-gap {
-    height: 12mm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    page-break-inside: avoid;
-  }
-
-  .tr-gap span {
-    font-size: 7pt;
-    letter-spacing: 1px;
-    color: #444;
-    border-top: 0.3mm dashed #999;
-    border-bottom: 0.3mm dashed #999;
-    padding: 1.5mm 0;
-    width: 100%;
-    text-align: center;
-  }
-}
