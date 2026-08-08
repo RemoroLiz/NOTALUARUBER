@@ -3,8 +3,8 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxQ8omiyDaox49x-9trt8R313d1eXIffSjF5Crm4xIyAbIiIGD3p8DwIusLKuB1Nqc/exec",
-  MAX_IMAGES: 5,
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
+  MAX_IMAGES: 8,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
   VERSION: "4.0",
@@ -79,6 +79,12 @@ function calculateKadarMesin() {
   document.getElementById("kadarMesin").value = kadar ? kadar.toFixed(2) : "";
 }
 
+function calculateKadarPotong() {
+  const presentase = parseFloat(document.getElementById("presentasePotong").value) || 0;
+  const kadar = (presentase / 100) * 24;
+  document.getElementById("kadarPotong").value = kadar ? kadar.toFixed(2) : "";
+}
+
 function calculateBeratTerima() {
   const beratSurat = parseFloat(document.getElementById("beratSurat").value) || 0;
   const beratFisik = parseFloat(document.getElementById("beratFisik").value) || 0;
@@ -115,6 +121,7 @@ function calculateHargaTerima() {
 
 function runAllCalculations() {
   calculateKadarMesin();
+  calculateKadarPotong();
   calculateBeratTerima();
   calculateHargaPerGram();
   calculateHargaTerima();
@@ -438,6 +445,8 @@ function updatePreview() {
     ["Kadar Fisik", v.kadarFisik],
     ["Presentase Mesin", v.presentaseMesin ? v.presentaseMesin + "%" : ""],
     ["Kadar Mesin", v.kadarMesin],
+    ["Presentase Potong", v.presentasePotong ? v.presentasePotong + "%" : ""],
+    ["Kadar Potong", v.kadarPotong],
     ["Berat Terima", v.beratTerima ? v.beratTerima + " g" : ""],
     ["Rate Terima", v.rateTerima],
     ["Harga Per Gram", v.hargaPerGram ? formatRupiah(v.hargaPerGram) : ""],
@@ -493,6 +502,9 @@ function buildStoreReceipt(id, v) {
     ["Kadar Fisik", v.kadarFisik || "-"],
     ["Kadar Mesin", v.kadarMesin || "-"],
     ["% Mesin", v.presentaseMesin ? `${v.presentaseMesin}%` : "-"],
+    ["Kode Pabrik", v.kodePabrik || "-"],
+    ["% Potong", v.presentasePotong ? `${v.presentasePotong}%` : "-"],
+    ["Kadar Potong", v.kadarPotong || "-"],
     ["Berat Surat", v.beratSurat ? `${v.beratSurat} g` : "-"],
     ["Berat Fisik", v.beratFisik ? `${v.beratFisik} g` : "-"],
     ["Susut", v.susut ? `${v.susut} g` : "-"],
@@ -520,6 +532,7 @@ function buildStoreReceipt(id, v) {
       ${renderRows(detailFields)}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
+      <div class="tr-footer tr-footer-note">Sudah di uji, potong, amplas dan gosok</div>
     </div>`;
 }
 
@@ -720,7 +733,7 @@ async function fetchStatistics() {
 // ==============================
 function resetForm() {
   document.getElementById("emasForm").reset();
-  ["kadarMesin", "beratTerima", "hargaPerGram", "hargaTerima"].forEach((id) => {
+  ["kadarMesin", "kadarPotong", "beratTerima", "hargaPerGram", "hargaTerima"].forEach((id) => {
     document.getElementById(id).value = "";
   });
 
@@ -750,7 +763,15 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.value = ""; // izinkan memilih file yang sama lagi
   });
 
-  const calculationInputs = ["presentaseMesin", "beratSurat", "beratFisik", "susut", "cokimTerima", "rateTerima"];
+  const calculationInputs = [
+    "presentaseMesin",
+    "presentasePotong",
+    "beratSurat",
+    "beratFisik",
+    "susut",
+    "cokimTerima",
+    "rateTerima",
+  ];
   calculationInputs.forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", () => runAllCalculations());
