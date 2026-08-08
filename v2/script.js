@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxQ8omiyDaox49x-9trt8R313d1eXIffSjF5Crm4xIyAbIiIGD3p8DwIusLKuB1Nqc/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   MAX_IMAGES: 5,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
@@ -561,7 +561,23 @@ const THERMAL_PRINT_STYLE = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 48mm; }
   body { font-family: "Segoe UI", Arial, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .thermal-receipt { width: 48mm; padding: 1.5mm 1.5mm; page-break-after: avoid; page-break-inside: avoid; }
+  .thermal-receipt {
+    width: 48mm;
+    /* Padding kiri sengaja jauh lebih besar dari kanan (top right
+       bottom left). Foto hasil cetak menunjukkan pemotongan SELALU
+       terjadi di ujung kiri secara konsisten (2 huruf pertama tiap
+       label hilang), sementara sisi kanan & teks center-align aman.
+       Ini ciri khas "unprintable margin" bawaan hardware/driver
+       printer thermal - area mati di tepi kertas yang TIDAK bisa
+       dikontrol lewat @page margin karena berada di luar kendali
+       CSS/browser. Solusinya: geser semua konten ke kanan lewat
+       padding kiri supaya tidak ada teks yang jatuh di zona mati
+       tersebut. Kalau printer Anda ternyata masih memotong sedikit,
+       cukup naikkan angka 5mm di baris ini saja. */
+    padding: 1.5mm 2mm 1.5mm 5mm;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
   .thermal-receipt .tr-title { text-align: center; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 1.2mm; }
   .thermal-receipt .tr-sub { text-align: center; font-size: 8pt; margin-bottom: 1.8mm; }
   .thermal-receipt hr { border: none; border-top: 0.4mm dashed #000; margin: 1.2mm 0; }
