@@ -212,6 +212,9 @@ header h1 i {
 }
 .btn-danger:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(198, 40, 40, 0.35); }
 
+.btn-block { width: 100%; justify-content: center; margin-top: 6px; }
+.btn-sm { padding: 7px 14px; font-size: 0.8rem; }
+
 .test-print-btn {
   background: var(--navy);
   color: #fff;
@@ -341,6 +344,202 @@ header h1 i {
 .tooltip:hover .tooltip-text { display: block; }
 
 /* ---------------- IMAGE UPLOAD ---------------- */
+.customer-id-field { margin-top: 12px; }
+
+.customer-id-field .readonly-field {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: #f4f3ee;
+  color: var(--navy);
+  cursor: not-allowed;
+}
+
+.customer-id-field .readonly-field::placeholder {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.customer-id-field .readonly-field:not(:placeholder-shown) {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* ============================================================
+   ALUR TRANSAKSI MULTI-BARANG (BARU)
+   ============================================================ */
+.step-section {
+  background: #faf9f5;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.step-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-title i { color: var(--gold-dark); }
+
+.induk-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--success-bg);
+  border: 1.5px solid var(--success);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.induk-banner.show { display: flex; }
+
+.induk-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--navy);
+}
+
+.induk-banner-info strong { color: var(--success); }
+
+.induk-items-box {
+  display: none;
+  background: #fff;
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.induk-items-box.show { display: block; }
+
+.induk-items-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+
+.induk-items-title i { color: var(--gold-dark); margin-right: 6px; }
+
+.induk-items-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.induk-item-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+}
+
+.induk-item-chip i { color: var(--success); }
+.induk-item-chip .chip-jenis { color: var(--text-muted); }
+
+#itemFormSection { display: none; }
+#itemFormSection.show { display: block; }
+
+.customer-section { position: relative; }
+
+.customer-search-wrap { position: relative; }
+
+.customer-suggestions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.customer-suggestions.show { display: block; }
+
+.customer-suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.customer-suggestion-item:last-child { border-bottom: none; }
+.customer-suggestion-item:hover { background: var(--success-bg); }
+.customer-suggestion-item i { color: var(--gold-dark); margin-right: 6px; }
+
+.cust-id-tag {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.customer-status {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  min-height: 0;
+}
+
+.customer-status:empty { padding: 0; margin-top: 0; }
+.customer-status.existing { background: var(--success-bg); color: var(--success); }
+.customer-status.new { background: #fff8e1; color: var(--gold-dark); }
+
+.customer-photo-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.customer-photo-section > label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--navy);
+}
+
+.customer-photo-section > label i { color: var(--gold-dark); margin-right: 6px; }
+
+.edit-image-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
 .image-upload-container {
   border: 2px dashed var(--border);
   border-radius: var(--radius);
@@ -396,6 +595,63 @@ header h1 i {
   text-align: center;
   padding: 2px 0;
 }
+
+.customer-table-photos {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.customer-table-thumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.edit-customer-existing-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.edit-customer-existing-item.marked-for-removal {
+  opacity: 0.4;
+  border: 2px solid var(--error);
+}
+
+.edit-customer-existing-item.marked-for-removal::after {
+  content: "Akan dihapus";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(198, 40, 40, 0.55);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 4px;
+}
+
+.btn-edit-customer-inline {
+  border: none;
+  background: var(--border);
+  color: var(--navy);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  cursor: pointer;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.btn-edit-customer-inline:hover { background: var(--gold); color: #fff; }
 
 .upload-controls {
   display: flex;
@@ -632,7 +888,22 @@ tbody tr:hover { background: #fbf7ea; }
 .btn-view { background: #e3f2fd; color: #1565c0; }
 .btn-edit { background: #fff3cd; color: #916600; }
 .btn-print { background: #ede7f6; color: #5e35b1; }
+.btn-pdf { background: #ffebee; color: #c62828; }
 .btn-delete { background: var(--error-bg); color: var(--error); }
+
+.customer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--navy);
+}
+
+.customer-tag i { color: var(--gold-dark); }
+
+.customer-tag .cust-id-tag {
+  font-size: 0.68rem;
+}
 
 .loading-data, .no-data-message {
   display: none;
@@ -797,132 +1068,13 @@ footer p { margin-bottom: 4px; }
   .filter-select { flex: 1; }
 }
 
+
 /* ============================================================
-   PRINT - STRUK THERMAL 57mm x 30mm
-   Dua sesi cetak: #printCustomer (untuk customer) dan
-   #printStore (laporan toko). Hanya salah satu yang tampil
-   sesuai class pada <body> saat mencetak (print-customer /
-   print-store), sisanya disembunyikan agar hemat kertas.
+   PRINT - STRUK THERMAL (POS-58, kertas roll 58mm)
+   Cetak struk TIDAK LAGI memakai #printArea + @media print di sini.
+   Sekarang script.js / crud-script.js membuat iframe tersembunyi
+   berisi HTML + CSS-nya sendiri lalu mencetak dari iframe itu (lihat
+   fungsi printThermalDocument). Ini menghindari halaman admin ikut
+   tercetak/terlihat dobel di browser & driver printer yang berbeda-
+   beda perilakunya terhadap @media print.
    ============================================================ */
-#printArea { display: none; }
-
-@media print {
-  @page {
-    /* PENTING: tinggi TIDAK boleh dikunci pendek (mis. 30mm) - kalau
-       konten lebih tinggi dari nilai ini, browser akan memecahnya jadi
-       banyak halaman berulang (ini penyebab bug "46 halaman"). Untuk
-       kertas roll thermal, beri tinggi longgar; printer roll akan
-       memotong kertas mengikuti panjang konten asli, bukan mengikuti
-       angka tinggi halaman ini. */
-    size: 57mm 150mm;
-    margin: 0;
-  }
-
-  html, body {
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* PENTING: pakai display:none, BUKAN cuma visibility:hidden.
-     visibility:hidden tetap menghitung tinggi elemen di layout, jadi
-     seluruh form/tabel/modal yang disembunyikan tetap "memakan ruang"
-     vertikal dan menghasilkan halaman kosong tambahan setelah struk.
-     display:none benar-benar mengeluarkannya dari alur halaman. */
-  body > *:not(#printArea) {
-    display: none !important;
-  }
-
-  #printArea {
-    display: block !important;
-    position: static;
-    width: 57mm;
-  }
-
-  .thermal-receipt {
-    width: 57mm;
-    padding: 1.5mm 2mm;
-    font-family: "Segoe UI", Arial, sans-serif;
-    color: #000;
-    page-break-after: avoid;
-    page-break-inside: avoid;
-  }
-
-  .thermal-receipt .tr-title {
-    text-align: center;
-    font-size: 7.5pt;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    margin-bottom: 1mm;
-  }
-
-  .thermal-receipt .tr-sub {
-    text-align: center;
-    font-size: 6pt;
-    margin-bottom: 1.5mm;
-  }
-
-  .thermal-receipt hr {
-    border: none;
-    border-top: 0.3mm dashed #000;
-    margin: 1mm 0;
-  }
-
-  .thermal-receipt .tr-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 7pt;
-    line-height: 1.35;
-  }
-
-  .thermal-receipt .tr-row .k { color: #000; }
-  .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; }
-
-  /* Layout 2 kolom untuk laporan toko - supaya tidak terlalu
-     panjang ke bawah, field-field pendek ditampilkan bersebelahan. */
-  .thermal-receipt .tr-columns {
-    display: flex;
-    gap: 2mm;
-    margin: 0.5mm 0;
-  }
-
-  .thermal-receipt .tr-col {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .thermal-receipt .tr-cell {
-    margin-bottom: 0.8mm;
-  }
-
-  .thermal-receipt .tr-cell .cell-k {
-    display: block;
-    font-size: 5.3pt;
-    text-transform: uppercase;
-    letter-spacing: 0.2px;
-    color: #000;
-    line-height: 1.1;
-  }
-
-  .thermal-receipt .tr-cell .cell-v {
-    display: block;
-    font-size: 6.6pt;
-    font-weight: 700;
-    line-height: 1.2;
-    word-break: break-word;
-  }
-
-  .thermal-receipt .tr-total {
-    font-size: 7.5pt;
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1mm;
-  }
-
-  .thermal-receipt .tr-footer {
-    text-align: center;
-    font-size: 5.8pt;
-    margin-top: 1.5mm;
-  }
-}
