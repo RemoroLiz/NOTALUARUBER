@@ -229,6 +229,75 @@
         </div>
       </div>
 
+      <!-- MODAL EDIT CUSTOMER (BARU) -->
+      <div id="editCustomerModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Edit Data Customer</h3>
+            <button class="modal-close" id="closeEditCustomerModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="editCustomerName" class="required"
+                ><i class="fas fa-user"></i> Nama Customer</label
+              >
+              <div class="input-with-icon">
+                <i class="fas fa-pen"></i>
+                <input
+                  type="text"
+                  id="editCustomerName"
+                  class="uppercase-input"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group customer-id-field">
+              <label><i class="fas fa-hashtag"></i> ID Customer</label>
+              <input type="text" id="editCustomerIdDisplay" class="readonly-field" readonly tabindex="-1" />
+            </div>
+
+            <div class="customer-photo-section" id="editCustomerPhotoSection" style="border-top: none; margin-top: 14px; padding-top: 0;">
+              <label><i class="fas fa-portrait"></i> Foto Customer</label>
+
+              <div class="edit-customer-existing-photos" id="editCustomerExistingPhotos"></div>
+
+              <p class="edit-image-hint">
+                Tambah foto baru untuk mengisi slot yang masih kosong (maks. 3
+                foto per customer).
+              </p>
+              <div class="image-upload-container">
+                <div class="image-preview-container" id="editCustomerImagePreviewContainer"></div>
+                <div class="upload-controls">
+                  <label for="editCustomerImageUpload" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> Pilih Foto Baru
+                  </label>
+                  <input
+                    type="file"
+                    id="editCustomerImageUpload"
+                    accept="image/*"
+                    multiple
+                    style="display: none"
+                  />
+                  <div class="upload-info">
+                    <span id="selectedEditCustomerImageCount">0 foto baru dipilih</span>
+                    <span class="max-info" id="editCustomerImageSlotInfo"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelEditCustomer">
+              <i class="fas fa-times"></i> Batal
+            </button>
+            <button class="btn btn-primary" id="saveEditCustomer">
+              <i class="fas fa-save"></i> Simpan Perubahan Customer
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- LOADING OVERLAY -->
       <div class="loading" id="loadingOverlay">
         <div class="spinner"></div>
