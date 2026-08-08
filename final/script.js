@@ -4,7 +4,7 @@
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
   WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
-  MAX_IMAGES: 5,
+  MAX_IMAGES: 10,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
   VERSION: "4.0",
@@ -15,6 +15,14 @@ const CONFIG = {
 // ==============================
 let selectedImages = []; // [{ dataUrl, base64, mimeType, sizeKb, fileName }]
 let currentReceiptData = null;
+
+// --- FITUR NOMOR INDUK TRANSAKSI (BARU) ---
+// Satu Nomor Induk = satu kunjungan customer, bisa menaungi banyak
+// barang (masing-masing dapat ID NOTLU sendiri).
+let currentNomorInduk = null;
+let currentCustomerId = null;
+let currentCustomerNama = null;
+let savedItemsInInduk = []; // [{ id, jenisBarang }]
 
 // ==============================
 // UTILITAS UMUM
@@ -73,6 +81,12 @@ function calculateKadarMesin() {
   document.getElementById("kadarMesin").value = kadar ? kadar.toFixed(2) : "";
 }
 
+function calculateKadarPotong() {
+  const presentase = parseFloat(document.getElementById("presentasePotong").value) || 0;
+  const kadar = (presentase / 100) * 24;
+  document.getElementById("kadarPotong").value = kadar ? kadar.toFixed(2) : "";
+}
+
 function calculateBeratTerima() {
   const beratSurat = parseFloat(document.getElementById("beratSurat").value) || 0;
   const beratFisik = parseFloat(document.getElementById("beratFisik").value) || 0;
@@ -109,6 +123,7 @@ function calculateHargaTerima() {
 
 function runAllCalculations() {
   calculateKadarMesin();
+  calculateKadarPotong();
   calculateBeratTerima();
   calculateHargaPerGram();
   calculateHargaTerima();
@@ -222,6 +237,120 @@ function renderImagePreviews() {
 }
 
 // ==============================
+// NOMOR INDUK TRANSAKSI (BARU)
+// ==============================
+/**
+ * Langkah 1: mulai transaksi baru. Cari/buat customer berdasarkan
+ * No HP (primary key), lalu buat Nomor Induk Transaksi baru yang
+ * bisa menaungi banyak barang (ID NOTLU) sekaligus.
+ */
+async function startTransaction() {
+  const noHp = document.getElementById("customerPhoneInput").value.trim();
+  const nama = document.getElementById("customerNameInput").value.trim();
+
+  if (!noHp || !nama) {
+    showStatus("Nomor HP dan Nama Customer wajib diisi.", false);
+    return;
+  }
+
+  const btn = document.getElementById("startTransactionBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+  try {
+    const result = await apiPost({ action: "starttransaction", noHp, nama });
+
+    currentNomorInduk = result.nomorInduk;
+    currentCustomerId = result.idCustomer;
+    currentCustomerNama = result.nama;
+    savedItemsInInduk = [];
+
+    document.getElementById("indukNomorLabel").textContent = result.nomorInduk;
+    document.getElementById("indukCustomerLabel").textContent = `${result.nama} (${result.idCustomer})`;
+    const badge = document.getElementById("indukCustomerBadge");
+    if (result.isNewCustomer) {
+      badge.textContent = "CUSTOMER BARU";
+      badge.className = "badge badge-warning";
+    } else {
+      badge.textContent = "CUSTOMER LAMA";
+      badge.className = "badge badge-success";
+    }
+
+    document.getElementById("customerStepSection").style.display = "none";
+    document.getElementById("customerPhoneInput").disabled = true;
+    document.getElementById("customerNameInput").disabled = true;
+    document.getElementById("indukBanner").classList.add("show");
+    document.getElementById("itemFormSection").classList.add("show");
+    renderIndukItemsList();
+
+    showStatus(
+      `Transaksi dimulai (${result.nomorInduk}). Silakan isi data barang pertama.`,
+      true,
+    );
+  } catch (err) {
+    showStatus(`Gagal memulai transaksi: ${err.message}`, false, 7000);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-arrow-right"></i> Mulai Transaksi';
+  }
+}
+
+/**
+ * Kembali ke Langkah 1 - dipakai baik untuk mengganti customer di
+ * tengah jalan, maupun otomatis dipanggil setelah transaksi selesai.
+ */
+function endTransaction() {
+  currentNomorInduk = null;
+  currentCustomerId = null;
+  currentCustomerNama = null;
+  savedItemsInInduk = [];
+
+  document.getElementById("customerPhoneInput").value = "";
+  document.getElementById("customerNameInput").value = "";
+  document.getElementById("customerPhoneInput").disabled = false;
+  document.getElementById("customerNameInput").disabled = false;
+  document.getElementById("customerStepSection").style.display = "block";
+  document.getElementById("indukBanner").classList.remove("show");
+  document.getElementById("itemFormSection").classList.remove("show");
+  document.getElementById("indukItemsBox").classList.remove("show");
+  document.getElementById("indukItemsList").innerHTML = "";
+  document.getElementById("indukItemsCount").textContent = "0";
+}
+
+function renderIndukItemsList() {
+  const box = document.getElementById("indukItemsBox");
+  const list = document.getElementById("indukItemsList");
+  document.getElementById("indukItemsCount").textContent = savedItemsInInduk.length;
+
+  if (!savedItemsInInduk.length) {
+    box.classList.remove("show");
+    list.innerHTML = "";
+    return;
+  }
+
+  box.classList.add("show");
+  list.innerHTML = savedItemsInInduk
+    .map(
+      (item) =>
+        `<div class="induk-item-chip"><i class="fas fa-check-circle"></i> ${item.id} <span class="chip-jenis">- ${item.jenisBarang || "-"}</span></div>`,
+    )
+    .join("");
+}
+
+function setupTransactionFlow() {
+  document.getElementById("startTransactionBtn").addEventListener("click", startTransaction);
+  document.getElementById("changeCustomerBtn").addEventListener("click", () => {
+    if (savedItemsInInduk.length) {
+      const ok = confirm(
+        `Transaksi ${currentNomorInduk} sudah punya ${savedItemsInInduk.length} barang tersimpan. Yakin mau mulai transaksi baru?`,
+      );
+      if (!ok) return;
+    }
+    endTransaction();
+  });
+}
+
+// ==============================
 // PREVIEW DATA
 // ==============================
 function getFormValues() {
@@ -252,6 +381,8 @@ function updatePreview() {
     ["Kadar Fisik", v.kadarFisik],
     ["Presentase Mesin", v.presentaseMesin ? v.presentaseMesin + "%" : ""],
     ["Kadar Mesin", v.kadarMesin],
+    ["Presentase Potong", v.presentasePotong ? v.presentasePotong + "%" : ""],
+    ["Kadar Potong", v.kadarPotong],
     ["Berat Terima", v.beratTerima ? v.beratTerima + " g" : ""],
     ["Rate Terima", v.rateTerima],
     ["Harga Per Gram", v.hargaPerGram ? formatRupiah(v.hargaPerGram) : ""],
@@ -272,7 +403,8 @@ function updatePreview() {
 function buildCustomerReceipt(id, v) {
   return `
     <div class="thermal-receipt">
-      <div class="tr-title">TOKO EMAS UBER</div>
+      <div class="tr-title">TOKO MAS PANTES UBER</div>
+      <div class="tr-address">Jl. A.H. Nasution No.219, Pasirjati, Kecamatan Ujung Berung, Bandung</div>
       <div class="tr-sub">${id} &middot; ${new Date().toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
       <hr />
       <div class="tr-row"><span class="k">Kadar Fisik</span><span class="v">${v.kadarFisik || "-"}</span></div>
@@ -287,18 +419,29 @@ function buildCustomerReceipt(id, v) {
 }
 
 function buildStoreReceipt(id, v) {
-  // Daftar field laporan toko. Disusun berpasangan lalu dibagi ke
-  // 2 kolom (kolom kiri = separuh pertama, kolom kanan = separuh
-  // kedua) supaya struk tidak terlalu panjang ke bawah.
-  const fields = [
+  // Field laporan toko - satu kolom (bukan 2 kolom seperti sebelumnya).
+  // Layout 2 kolom terbukti memaksa font sangat kecil sehingga mudah
+  // terpotong/tidak terbaca di printer thermal. Kertas roll thermal
+  // panjangnya fleksibel (printer memotong mengikuti panjang konten),
+  // jadi satu kolom yang lebih panjang ke bawah justru lebih aman.
+  //
+  // Field identitas (Jenis, Cokim) dipisah dari field detail berikutnya
+  // dengan garis pemisah tersendiri.
+  const identityFields = [
     ["Jenis", v.jenisBarang || "-"],
     ["Cokim", v.cokimTerima || "-"],
+  ];
+
+  const detailFields = [
     ["Surat", v.surat || "-"],
     ["Sales", v.kodeSales || "-"],
     ["Toko", v.namaToko || "-"],
     ["Kadar Fisik", v.kadarFisik || "-"],
     ["Kadar Mesin", v.kadarMesin || "-"],
     ["% Mesin", v.presentaseMesin ? `${v.presentaseMesin}%` : "-"],
+    ["Kode Pabrik", v.kodePabrik || "-"],
+    ["% Potong", v.presentasePotong ? `${v.presentasePotong}%` : "-"],
+    ["Kadar Potong", v.kadarPotong || "-"],
     ["Berat Surat", v.beratSurat ? `${v.beratSurat} g` : "-"],
     ["Berat Fisik", v.beratFisik ? `${v.beratFisik} g` : "-"],
     ["Susut", v.susut ? `${v.susut} g` : "-"],
@@ -309,49 +452,153 @@ function buildStoreReceipt(id, v) {
     ["Harga/gram", formatRupiah(v.hargaPerGram)],
   ];
 
-  const mid = Math.ceil(fields.length / 2);
-  const leftFields = fields.slice(0, mid);
-  const rightFields = fields.slice(mid);
-
-  const renderCol = (colFields) =>
-    colFields
+  const renderRows = (arr) =>
+    arr
       .map(
-        ([label, value]) => `
-        <div class="tr-cell">
-          <span class="cell-k">${label}</span>
-          <span class="cell-v">${value}</span>
-        </div>`,
+        ([label, value]) => `<div class="tr-row"><span class="k">${label}</span><span class="v">${value}</span></div>`,
       )
       .join("");
 
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN NOTA LUAR UBER</div>
-      <div class="tr-sub">${id}</div>
+      <div class="tr-sub">${id} &middot; ${new Date().toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
       <hr />
-      <div class="tr-columns">
-        <div class="tr-col">${renderCol(leftFields)}</div>
-        <div class="tr-col">${renderCol(rightFields)}</div>
-      </div>
+      ${renderRows(identityFields)}
+      <hr />
+      ${renderRows(detailFields)}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
+      <div class="tr-footer tr-footer-note">Sudah di uji, potong, amplas dan gosok</div>
     </div>`;
 }
 
-function printReceipt(session, id, v) {
-  const printArea = document.getElementById("printArea");
-  printArea.innerHTML = session === "customer" ? buildCustomerReceipt(id, v) : buildStoreReceipt(id, v);
-  window.print();
+/**
+ * Menggabungkan struk customer + laporan toko jadi SATU dokumen
+ * print (dipisahkan jarak beberapa cm + garis putus "gunting di
+ * sini"), supaya hanya 1x panggilan print / 1 print job.
+ */
+function buildCombinedReceipt(id, v) {
+  return `
+    ${buildCustomerReceipt(id, v)}
+    <div class="tr-gap"><span>&#9986; gunting di sini &#9986;</span></div>
+    ${buildStoreReceipt(id, v)}
+  `;
 }
 
 /**
- * Mencetak 2 sesi berurutan: struk customer lalu laporan toko.
- * Browser akan menampilkan dua kali dialog cetak (satu per sesi)
- * karena keterbatasan window.print() yang sinkron per panggilan.
+ * CSS struk thermal untuk printer POS-58 / BM9000 dengan kertas roll
+ * 57mm (dikonfirmasi dari label kertas: "Paperline 57x30mm").
+ *
+ * PENTING: lebar KERTAS (57mm) berbeda dengan lebar CETAK yang
+ * benar-benar bisa dipakai kepala cetak printer thermal. Hampir
+ * semua printer kelas "POS-58"/BM9000 punya kepala cetak selebar
+ * ~48mm walau kertasnya 57-58mm (sisanya adalah margin non-cetak di
+ * kedua sisi kertas). Sebelumnya lebar konten disamakan dengan
+ * lebar kertas penuh (58mm) - itu sebabnya teks selalu terpotong
+ * rata di KIRI DAN KANAN (contoh: "adar Fisik", "arga/gram" - huruf
+ * pertama & terakhir hilang) karena melebihi kemampuan kepala cetak.
+ * Menyempitkan lebar konten ke 48mm menghilangkan pemotongan ini di
+ * printer manapun kelas 57-58mm.
+ *
+ * "size: ... auto" membiarkan tinggi halaman mengikuti panjang
+ * konten (bukan angka tetap) - menghindari halaman kosong berlebih
+ * (konten pendek) maupun konten terpotong secara vertikal (konten
+ * panjang).
  */
-function printBothSessions(id, v) {
-  printReceipt("customer", id, v);
-  setTimeout(() => printReceipt("store", id, v), 700);
+const THERMAL_PRINT_STYLE = `
+  @page { size: 48mm auto; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 48mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .thermal-receipt {
+    width: 48mm;
+    /* Padding kiri sengaja jauh lebih besar dari kanan (top right
+       bottom left). Foto hasil cetak menunjukkan pemotongan SELALU
+       terjadi di ujung kiri secara konsisten (2 huruf pertama tiap
+       label hilang), sementara sisi kanan & teks center-align aman.
+       Ini ciri khas "unprintable margin" bawaan hardware/driver
+       printer thermal - area mati di tepi kertas yang TIDAK bisa
+       dikontrol lewat @page margin karena berada di luar kendali
+       CSS/browser. Solusinya: geser semua konten ke kanan lewat
+       padding kiri supaya tidak ada teks yang jatuh di zona mati
+       tersebut. Kalau printer Anda ternyata masih memotong sedikit,
+       cukup naikkan angka 5mm di baris ini saja. */
+    padding: 1.5mm 2mm 1.5mm 5mm;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  .thermal-receipt .tr-title { text-align: center; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 1.2mm; }
+  .thermal-receipt .tr-address { text-align: center; font-size: 6.3pt; line-height: 1.3; margin-bottom: 1.5mm; color: #333; }
+  .thermal-receipt .tr-sub { text-align: center; font-size: 8pt; margin-bottom: 1.8mm; }
+  .thermal-receipt hr { border: none; border-top: 0.4mm dashed #000; margin: 1.2mm 0; }
+  .thermal-receipt .tr-row { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8.5pt; line-height: 1.55; }
+  .thermal-receipt .tr-row .k { white-space: nowrap; }
+  .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; word-break: break-word; }
+  .thermal-receipt .tr-total { font-size: 9.5pt; font-weight: 700; display: flex; justify-content: space-between; margin-top: 1.5mm; }
+  .thermal-receipt .tr-footer { text-align: center; font-size: 7.5pt; margin-top: 1.8mm; }
+  .tr-gap { height: 12mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
+  .tr-gap span { font-size: 7pt; letter-spacing: 1px; color: #444; border-top: 0.3mm dashed #999; border-bottom: 0.3mm dashed #999; padding: 1.5mm 0; width: 100%; text-align: center; }
+`;
+
+/**
+ * Mencetak lewat IFRAME TERSEMBUNYI yang berisi HANYA HTML struk +
+ * CSS-nya sendiri (bukan lagi menumpang di halaman utama lalu
+ * menyembunyikan sisanya pakai @media print). Ini sengaja dibuat
+ * berdiri sendiri supaya:
+ *  - Halaman admin/form TIDAK PERNAH ikut mungkin tercetak/terlihat
+ *    dobel, apapun browser atau driver printer yang dipakai (dulu
+ *    ini bergantung pada @media print yang tidak konsisten
+ *    diterapkan oleh sebagian browser/driver POS, itulah penyebab
+ *    "tampilan 2x" dan halaman kosong yang dilaporkan).
+ *  - @page 48mm auto berlaku bersih tanpa "diganggu" CSS halaman
+ *    utama yang jauh lebih kompleks.
+ */
+function printThermalDocument(bodyHtml) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(
+      `<!doctype html><html><head><meta charset="UTF-8" /><title>Struk</title><style>${THERMAL_PRINT_STYLE}</style></head><body>${bodyHtml}</body></html>`,
+    );
+    doc.close();
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 500);
+      resolve();
+    };
+
+    const triggerPrint = () => {
+      if (done) return;
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error("Gagal mencetak struk:", err);
+      }
+      finish();
+    };
+
+    // onload biasanya cukup, tapi beberapa browser/driver POS lambat
+    // menghitung layout iframe - beri jeda kecil + fallback timer
+    // supaya print tetap terpicu walau event onload tidak konsisten.
+    iframe.onload = () => setTimeout(triggerPrint, 100);
+    setTimeout(triggerPrint, 500);
+  });
+}
+
+async function printReceipt(id, v) {
+  await printThermalDocument(buildCombinedReceipt(id, v));
 }
 
 function testPrint() {
@@ -361,7 +608,7 @@ function testPrint() {
     showStatus("Isi form terlebih dahulu sebelum test cetak.", false);
     return;
   }
-  printBothSessions("TEST-0000", v);
+  printReceipt("TEST-0000", v);
 }
 
 // ==============================
@@ -388,7 +635,10 @@ async function apiGet(params) {
 
 async function saveToBackend(formValues) {
   const images = selectedImages.map((img) => ({ data: img.base64, mimeType: img.mimeType }));
-  return apiPost({ action: "create", data: formValues, images });
+  // IdCustomer otomatis diambil backend dari Nomor Induk Transaksi
+  // yang sedang aktif (lihat handleCreate + resolveCustomerId di
+  // Code.gs) - tidak perlu dikirim ulang di setiap barang.
+  return apiPost({ action: "create", nomorInduk: currentNomorInduk, data: formValues, images });
 }
 
 async function fetchStatistics() {
@@ -405,12 +655,40 @@ async function fetchStatistics() {
 }
 
 // ==============================
-// RESET FORM
+// RESET FORM (BARANG SAJA)
 // ==============================
+/**
+ * Mengosongkan field BARANG saja (bukan Nomor HP/Nama/Nomor Induk) -
+ * form tetap siap dipakai untuk barang berikutnya dalam transaksi
+ * yang sama. Untuk mengakhiri transaksi & ganti customer, pakai
+ * tombol "Transaksi Baru / Ganti Customer" (lihat endTransaction()).
+ */
 function resetForm() {
-  document.getElementById("emasForm").reset();
-  ["kadarMesin", "beratTerima", "hargaPerGram", "hargaTerima"].forEach((id) => {
-    document.getElementById(id).value = "";
+  const itemFieldIds = [
+    "kodeSales",
+    "cokimTerima",
+    "jenisBarang",
+    "surat",
+    "namaToko",
+    "kadarFisik",
+    "presentaseMesin",
+    "kadarMesin",
+    "presentasePotong",
+    "kadarPotong",
+    "kodePabrik",
+    "beratSurat",
+    "beratFisik",
+    "susut",
+    "beratTerima",
+    "kondisiPerhiasan",
+    "model",
+    "rateTerima",
+    "hargaPerGram",
+    "hargaTerima",
+  ];
+  itemFieldIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
   });
 
   selectedImages = [];
@@ -430,13 +708,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupNumberInputs();
   setupUppercaseInputs();
+  setupTransactionFlow();
 
   document.getElementById("imageUpload").addEventListener("change", (e) => {
     handleImageSelection(e.target.files);
     e.target.value = ""; // izinkan memilih file yang sama lagi
   });
 
-  const calculationInputs = ["presentaseMesin", "beratSurat", "beratFisik", "susut", "cokimTerima", "rateTerima"];
+  const calculationInputs = [
+    "presentaseMesin",
+    "presentasePotong",
+    "beratSurat",
+    "beratFisik",
+    "susut",
+    "cokimTerima",
+    "rateTerima",
+  ];
   calculationInputs.forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", () => runAllCalculations());
@@ -458,11 +745,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("printPreviewBtn").addEventListener("click", () => {
     if (!currentReceiptData) return;
-    printBothSessions(currentReceiptData.id, currentReceiptData.values);
+    printReceipt(currentReceiptData.id, currentReceiptData.values);
   });
 
   document.getElementById("emasForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (!currentNomorInduk) {
+      showStatus("Mulai transaksi dulu (isi Nomor HP & Nama Customer) sebelum menyimpan barang.", false);
+      return;
+    }
 
     if (!e.target.checkValidity()) {
       e.target.reportValidity();
@@ -485,21 +777,21 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await saveToBackend(values);
 
       currentReceiptData = { id: result.id, values };
+      savedItemsInInduk.push({ id: result.id, jenisBarang: values.jenisBarang });
+      renderIndukItemsList();
 
       updateLoadingMessage("Data tersimpan. Menyiapkan cetakan...");
-      setTimeout(() => {
-        printBothSessions(result.id, values);
+      setTimeout(async () => {
+        await printReceipt(result.id, values);
 
-        setTimeout(() => {
-          resetForm();
-          document.getElementById("loadingOverlay").classList.remove("show");
-          fetchStatistics();
-          showStatus(
-            `Data berhasil disimpan dengan ID: <strong>${result.id}</strong>`,
-            true,
-            6000,
-          );
-        }, 800);
+        resetForm();
+        document.getElementById("loadingOverlay").classList.remove("show");
+        fetchStatistics();
+        showStatus(
+          `Barang ${result.id} tersimpan di transaksi ${currentNomorInduk}. Silakan isi barang berikutnya, atau klik "Transaksi Baru" kalau sudah selesai.`,
+          true,
+          7000,
+        );
       }, 600);
     } catch (err) {
       console.error(err);
