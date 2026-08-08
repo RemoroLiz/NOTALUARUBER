@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxF64rJ5hoOYV084Y2MDUOs9dia8TxIKBmEYLptfG1bPdEnICRDaVkR4YcWg-umzuNY/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   MAX_IMAGES: 8,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
@@ -245,7 +245,7 @@ function renderCustomerImagePreviews() {
       <div class="image-preview-item">
         <img src="${img.dataUrl}" alt="foto customer ${idx + 1}" />
         <span class="image-size-tag">${img.sizeKb} KB</span>
-        <button type="button" class="remove-customer-image" data-idx="${idx}" title="Hapus foto">&times;</button>
+        <button type="button" class="remove-image remove-customer-image" data-idx="${idx}" title="Hapus foto">&times;</button>
       </div>`,
     )
     .join("");
