@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DATA CUSTOMER - UBER EMAS</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header>
+        <h1><i class="fas fa-users"></i> DATA CUSTOMER UBER</h1>
+        <p class="subtitle">Manajemen Data Customer - Nama, No HP &amp; Foto</p>
+        <div class="connection-status">
+          <div class="status-dot"></div>
+          <span id="connectionText">Terhubung ke Spreadsheet</span>
+        </div>
+
+        <!-- NAVIGATION -->
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i> Form Input
+          </a>
+          <a href="crud.html" class="nav-link">
+            <i class="fas fa-database"></i> Data Management
+          </a>
+          <a href="customer.html" class="nav-link active">
+            <i class="fas fa-users"></i> Data Customer
+          </a>
+        </nav>
+      </header>
+
+      <!-- INFO BOX -->
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <strong>Petunjuk Penggunaan:</strong> Halaman ini khusus mengelola data
+        customer (nama, nomor HP, dan foto). Nomor HP dipakai sebagai kunci
+        utama untuk membedakan customer lama dan baru saat input transaksi.
+        Mengubah data di sini otomatis berlaku untuk semua transaksi yang
+        terhubung ke customer tersebut.
+      </div>
+
+      <!-- STATUS INDICATOR -->
+      <div class="status-indicator" id="statusIndicator">
+        <span id="statusMessage"></span>
+      </div>
+
+      <!-- FILTER & SEARCH -->
+      <div class="filter-section">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari berdasarkan nama atau nomor HP..."
+          />
+        </div>
+        <div class="filter-controls">
+          <button id="resetFilter" class="btn btn-secondary">
+            <i class="fas fa-redo-alt"></i> Reset Pencarian
+          </button>
+        </div>
+      </div>
+
+      <!-- DATA TABLE -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2><i class="fas fa-address-book"></i> Daftar Customer</h2>
+          <div class="table-actions">
+            <div class="table-info">
+              <span id="totalRecords">Total: 0 customer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>ID Customer</th>
+                <th>Nama</th>
+                <th>No HP</th>
+                <th>Foto</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- LOADING DATA -->
+        <div id="loadingData" class="loading-data">
+          <div class="spinner"></div>
+          <p>Memuat data...</p>
+        </div>
+
+        <!-- NO DATA MESSAGE -->
+        <div id="noDataMessage" class="no-data-message">
+          <i class="fas fa-users"></i>
+          <h3>Tidak Ada Data</h3>
+          <p>Belum ada data customer yang tersimpan.</p>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer>
+        <p><strong>DATA CUSTOMER UBER - Sistem Manajemen Data</strong></p>
+        <p>
+          © 2023 - <span id="currentYear"></span> | Versi 4.0 | Terhubung ke:
+          <a
+            href="https://docs.google.com/spreadsheets/d/13F61S13NUpC57azXRI-rLwGITS7tVSuZTk6vg1h9bnE/edit?usp=sharing"
+            target="_blank"
+            >Google Spreadsheet</a
+          >
+        </p>
+      </footer>
+
+      <!-- MODAL EDIT CUSTOMER -->
+      <div id="editCustomerModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Edit Data Customer</h3>
+            <button class="modal-close" id="closeEditCustomerModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="editCustomerName" class="required"
+                ><i class="fas fa-user"></i> Nama Customer</label
+              >
+              <div class="input-with-icon">
+                <i class="fas fa-pen"></i>
+                <input
+                  type="text"
+                  id="editCustomerName"
+                  class="uppercase-input"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editCustomerPhone" class="required"
+                ><i class="fas fa-phone"></i> Nomor HP</label
+              >
+              <div class="input-with-icon">
+                <i class="fas fa-phone"></i>
+                <input
+                  type="tel"
+                  id="editCustomerPhone"
+                  placeholder="08xxxxxxxxxx"
+                  required
+                />
+              </div>
+              <small class="tooltip"
+                >Nomor HP adalah kunci utama pencarian customer
+                <span class="tooltip-text"
+                  >Dipakai untuk membedakan customer lama dan baru saat input
+                  transaksi. Pastikan tidak ada 2 customer dengan nomor yang
+                  sama.</span
+                >
+              </small>
+            </div>
+
+            <div class="form-group customer-id-field">
+              <label><i class="fas fa-hashtag"></i> ID Customer</label>
+              <input type="text" id="editCustomerIdDisplay" class="readonly-field" readonly tabindex="-1" />
+            </div>
+
+            <div class="customer-photo-section" id="editCustomerPhotoSection" style="border-top: none; margin-top: 14px; padding-top: 0;">
+              <label><i class="fas fa-portrait"></i> Foto Customer</label>
+
+              <div class="edit-customer-existing-photos" id="editCustomerExistingPhotos"></div>
+
+              <p class="edit-image-hint">
+                Tambah foto baru untuk mengisi slot yang masih kosong (maks. 3
+                foto per customer).
+              </p>
+              <div class="image-upload-container">
+                <div class="image-preview-container" id="editCustomerImagePreviewContainer"></div>
+                <div class="upload-controls">
+                  <label for="editCustomerImageUpload" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> Pilih Foto Baru
+                  </label>
+                  <input
+                    type="file"
+                    id="editCustomerImageUpload"
+                    accept="image/*"
+                    multiple
+                    style="display: none"
+                  />
+                  <div class="upload-info">
+                    <span id="selectedEditCustomerImageCount">0 foto baru dipilih</span>
+                    <span class="max-info" id="editCustomerImageSlotInfo"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelEditCustomer">
+              <i class="fas fa-times"></i> Batal
+            </button>
+            <button class="btn btn-primary" id="saveEditCustomer">
+              <i class="fas fa-save"></i> Simpan Perubahan Customer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOADING OVERLAY -->
+      <div class="loading" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3>Memproses...</h3>
+        <p id="loadingMessage">Mohon tunggu sebentar</p>
+      </div>
+    </div>
+
+    <script src="customer-script.js"></script>
+  </body>
+</html>
