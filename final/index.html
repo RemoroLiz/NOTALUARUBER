@@ -36,6 +36,9 @@
           <a href="crud.html" class="nav-link">
             <i class="fas fa-database"></i> Data Management
           </a>
+          <a href="customer.html" class="nav-link">
+            <i class="fas fa-users"></i> Data Customer
+          </a>
         </nav>
       </header>
 
@@ -44,7 +47,7 @@
         <i class="fas fa-info-circle"></i>
         <strong>Petunjuk Penggunaan:</strong> Isi semua form yang bertanda (*),
         sistem akan otomatis menghitung kadar mesin, berat terima, dan harga.
-        Upload maksimal 5 gambar (otomatis dikompres). Klik "Simpan & Cetak"
+        Upload maksimal 10 gambar (otomatis dikompres). Klik "Simpan & Cetak"
         untuk menyimpan ke spreadsheet dan mencetak struk customer + laporan
         toko.
       </div>
@@ -62,7 +65,97 @@
             <i class="fas fa-edit"></i> Form Input Data
           </h2>
           <form id="emasForm">
-            <!-- ROW 1 -->
+            <!-- LANGKAH 1 (BARU): Data Customer & Nomor Induk Transaksi -->
+            <div class="step-section" id="customerStepSection">
+              <h3 class="step-title">
+                <i class="fas fa-user-plus"></i> Langkah 1: Data Customer
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="customerPhoneInput" class="required"
+                    ><i class="fas fa-phone"></i> Nomor HP</label
+                  >
+                  <div class="input-with-icon">
+                    <i class="fas fa-phone"></i>
+                    <input
+                      type="tel"
+                      id="customerPhoneInput"
+                      placeholder="08xxxxxxxxxx"
+                      required
+                    />
+                  </div>
+                  <small class="tooltip"
+                    >Nomor HP jadi kunci pengenal customer
+                    <span class="tooltip-text"
+                      >Kalau nomor ini sudah pernah didaftarkan, sistem otomatis
+                      memakai data customer yang lama - nama tidak perlu sama
+                      persis ejaannya.</span
+                    >
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="customerNameInput" class="required"
+                    ><i class="fas fa-user"></i> Nama Customer</label
+                  >
+                  <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input
+                      type="text"
+                      id="customerNameInput"
+                      required
+                      placeholder="Nama lengkap customer"
+                      class="uppercase-input"
+                    />
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="startTransactionBtn"
+                class="btn btn-primary btn-block"
+              >
+                <i class="fas fa-arrow-right"></i> Mulai Transaksi
+              </button>
+            </div>
+
+            <!-- BANNER TRANSAKSI AKTIF (BARU) - tampil setelah Langkah 1 selesai -->
+            <div class="induk-banner" id="indukBanner">
+              <div class="induk-banner-info">
+                <div>
+                  <i class="fas fa-receipt"></i> Nomor Induk:
+                  <strong id="indukNomorLabel">-</strong>
+                </div>
+                <div>
+                  <i class="fas fa-user"></i> Customer:
+                  <strong id="indukCustomerLabel">-</strong>
+                  <span class="badge" id="indukCustomerBadge"></span>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="changeCustomerBtn"
+                class="btn btn-secondary btn-sm"
+              >
+                <i class="fas fa-redo-alt"></i> Transaksi Baru / Ganti Customer
+              </button>
+            </div>
+
+            <!-- DAFTAR BARANG YANG SUDAH TERSIMPAN DI TRANSAKSI INI (BARU) -->
+            <div class="induk-items-box" id="indukItemsBox">
+              <div class="induk-items-title">
+                <i class="fas fa-list-ol"></i> Barang di transaksi ini
+                (<span id="indukItemsCount">0</span>)
+              </div>
+              <div class="induk-items-list" id="indukItemsList"></div>
+            </div>
+
+            <!-- LANGKAH 2 (BARU): Data Barang - tampil setelah Langkah 1 selesai -->
+            <div id="itemFormSection">
+              <h3 class="step-title">
+                <i class="fas fa-box"></i> Langkah 2: Data Barang
+              </h3>
+
+              <!-- ROW 1 -->
             <div class="form-row">
               <div class="form-group">
                 <label for="kodeSales" class="required"
@@ -220,6 +313,49 @@
                     class="uppercase-input"
                   />
                 </div>
+              </div>
+            </div>
+
+            <!-- ROW 4B (BARU): Presentase Potong & Kadar Potong -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="presentasePotong"
+                  ><i class="fas fa-cut"></i> Presentase Potong (%)</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-percentage"></i>
+                  <input
+                    type="number"
+                    id="presentasePotong"
+                    name="presentasePotong"
+                    placeholder="Masukkan persentase potong"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="kadarPotong"
+                  ><i class="fas fa-cut"></i> Kadar Potong</label
+                >
+                <div class="input-with-icon">
+                  <i class="fas fa-cogs"></i>
+                  <input
+                    type="number"
+                    id="kadarPotong"
+                    name="kadarPotong"
+                    readonly
+                    placeholder="Akan terisi otomatis"
+                  />
+                </div>
+                <small class="tooltip"
+                  >Otomatis: (Presentase Potong / 100) &times; 24
+                  <span class="tooltip-text"
+                    >Kadar potong dihitung dari persentase potong dikali 24
+                    karat</span
+                  >
+                </small>
               </div>
             </div>
 
@@ -408,7 +544,7 @@
             <!-- UPLOAD GAMBAR -->
             <div class="form-group">
               <label
-                ><i class="fas fa-images"></i> Upload Gambar (Maks. 5 file,
+                ><i class="fas fa-images"></i> Upload Gambar (Maks. 10 file,
                 otomatis dikompres)</label
               >
               <div class="image-upload-container">
@@ -430,7 +566,7 @@
                   />
                   <div class="upload-info">
                     <span id="selectedImageCount">0 gambar dipilih</span>
-                    <span class="max-info">Maks. 5 gambar</span>
+                    <span class="max-info">Maks. 10 gambar</span>
                   </div>
                 </div>
                 <div
@@ -456,6 +592,8 @@
                 <i class="fas fa-print"></i> Test Cetak
               </button>
             </div>
+            </div>
+            <!-- /#itemFormSection -->
           </form>
         </section>
 
@@ -528,10 +666,9 @@
       </div>
     </div>
 
-    <!-- PRINT AREA (HIDDEN, diisi otomatis oleh script.js saat mencetak) -->
-    <!-- Harus di luar .container agar CSS "body > *:not(#printArea)" bisa menyembunyikan
-         seluruh isi halaman lain saat print, tanpa ikut menyembunyikan struk ini. -->
-    <div id="printArea"></div>
+    <!-- Cetak struk sekarang lewat iframe tersembunyi yang dibuat/
+         dihapus otomatis oleh script.js (lihat printThermalDocument),
+         bukan lagi div #printArea + @media print di halaman ini. -->
 
     <script src="script.js"></script>
   </body>
