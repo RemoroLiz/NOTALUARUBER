@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw92vDNO0RzDLrF-IW_ruQZQA0Vpgnrel1uhBO8QuGjjAFrzIygYlzaNBm5zNOgtXkU/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   MAX_IMAGES: 5,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
@@ -517,15 +517,7 @@ function buildStoreReceipt(id, v) {
 /**
  * Menggabungkan struk customer + laporan toko jadi SATU dokumen
  * print (dipisahkan jarak beberapa cm + garis putus "gunting di
- * sini"), supaya hanya 1x window.print() / 1 print job dipanggil.
- *
- * Sebelumnya dipanggil 2x window.print() berurutan (dengan jeda
- * setTimeout) untuk 2 sesi terpisah. Ini bermasalah: window.print()
- * bersifat blocking di sebagian browser (mis. Chrome), sehingga
- * panggilan kedua bisa mulai sebelum job pertama benar-benar
- * selesai/tertutup - menghasilkan hasil cetak ganda, tertukar, atau
- * terpotong tergantung browser & printer thermal yang dipakai. Satu
- * print job untuk kedua struk sekaligus menghilangkan race ini.
+ * sini"), supaya hanya 1x panggilan print / 1 print job.
  */
 function buildCombinedReceipt(id, v) {
   return `
@@ -535,10 +527,89 @@ function buildCombinedReceipt(id, v) {
   `;
 }
 
-function printReceipt(id, v) {
-  const printArea = document.getElementById("printArea");
-  printArea.innerHTML = buildCombinedReceipt(id, v);
-  window.print();
+/**
+ * CSS struk thermal untuk printer POS-58 (kertas roll 58mm).
+ * "size: 58mm auto" membiarkan tinggi halaman mengikuti panjang
+ * konten (bukan angka tetap) - ini kunci menghindari 2 masalah
+ * sekaligus: halaman kosong berlebih (kalau konten pendek) dan
+ * konten terpotong (kalau konten panjang).
+ */
+const THERMAL_PRINT_STYLE = `
+  @page { size: 58mm auto; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 58mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .thermal-receipt { width: 58mm; padding: 2mm 2.5mm; page-break-after: avoid; page-break-inside: avoid; }
+  .thermal-receipt .tr-title { text-align: center; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 1.2mm; }
+  .thermal-receipt .tr-sub { text-align: center; font-size: 8pt; margin-bottom: 1.8mm; }
+  .thermal-receipt hr { border: none; border-top: 0.4mm dashed #000; margin: 1.2mm 0; }
+  .thermal-receipt .tr-row { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8.5pt; line-height: 1.55; }
+  .thermal-receipt .tr-row .k { white-space: nowrap; }
+  .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; word-break: break-word; }
+  .thermal-receipt .tr-total { font-size: 9.5pt; font-weight: 700; display: flex; justify-content: space-between; margin-top: 1.5mm; }
+  .thermal-receipt .tr-footer { text-align: center; font-size: 7.5pt; margin-top: 1.8mm; }
+  .tr-gap { height: 12mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
+  .tr-gap span { font-size: 7pt; letter-spacing: 1px; color: #444; border-top: 0.3mm dashed #999; border-bottom: 0.3mm dashed #999; padding: 1.5mm 0; width: 100%; text-align: center; }
+`;
+
+/**
+ * Mencetak lewat IFRAME TERSEMBUNYI yang berisi HANYA HTML struk +
+ * CSS-nya sendiri (bukan lagi menumpang di halaman utama lalu
+ * menyembunyikan sisanya pakai @media print). Ini sengaja dibuat
+ * berdiri sendiri supaya:
+ *  - Halaman admin/form TIDAK PERNAH ikut mungkin tercetak/terlihat
+ *    dobel, apapun browser atau driver printer yang dipakai (dulu
+ *    ini bergantung pada @media print yang tidak konsisten
+ *    diterapkan oleh sebagian browser/driver POS, itulah penyebab
+ *    "tampilan 2x" dan halaman kosong yang dilaporkan).
+ *  - @page 58mm auto berlaku bersih tanpa "diganggu" CSS halaman
+ *    utama yang jauh lebih kompleks.
+ */
+function printThermalDocument(bodyHtml) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(
+      `<!doctype html><html><head><meta charset="UTF-8" /><title>Struk</title><style>${THERMAL_PRINT_STYLE}</style></head><body>${bodyHtml}</body></html>`,
+    );
+    doc.close();
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 500);
+      resolve();
+    };
+
+    const triggerPrint = () => {
+      if (done) return;
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error("Gagal mencetak struk:", err);
+      }
+      finish();
+    };
+
+    // onload biasanya cukup, tapi beberapa browser/driver POS lambat
+    // menghitung layout iframe - beri jeda kecil + fallback timer
+    // supaya print tetap terpicu walau event onload tidak konsisten.
+    iframe.onload = () => setTimeout(triggerPrint, 100);
+    setTimeout(triggerPrint, 500);
+  });
+}
+
+async function printReceipt(id, v) {
+  await printThermalDocument(buildCombinedReceipt(id, v));
 }
 
 function testPrint() {
@@ -692,19 +763,17 @@ document.addEventListener("DOMContentLoaded", () => {
       currentReceiptData = { id: result.id, values };
 
       updateLoadingMessage("Data tersimpan. Menyiapkan cetakan...");
-      setTimeout(() => {
-        printReceipt(result.id, values);
+      setTimeout(async () => {
+        await printReceipt(result.id, values);
 
-        setTimeout(() => {
-          resetForm();
-          document.getElementById("loadingOverlay").classList.remove("show");
-          fetchStatistics();
-          showStatus(
-            `Data berhasil disimpan dengan ID: <strong>${result.id}</strong>`,
-            true,
-            6000,
-          );
-        }, 800);
+        resetForm();
+        document.getElementById("loadingOverlay").classList.remove("show");
+        fetchStatistics();
+        showStatus(
+          `Data berhasil disimpan dengan ID: <strong>${result.id}</strong>`,
+          true,
+          6000,
+        );
       }, 600);
     } catch (err) {
       console.error(err);
