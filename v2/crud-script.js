@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx7ERUoDAwin5MTPzh4ZtJD_c_oNP2ddEdj4YlyHwWoiKI2czxt1GhIi9Z14bDTXj_y/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 5,
 };
@@ -435,9 +435,15 @@ function buildCustomerReceipt(id, v) {
 function buildStoreReceipt(id, v) {
   // Satu kolom (bukan 2 kolom) - layout 2 kolom memaksa font sangat
   // kecil sehingga mudah terpotong/tidak terbaca di printer thermal.
-  const fields = [
+  //
+  // Field identitas (Jenis, Cokim) dipisah dari field detail berikutnya
+  // dengan garis pemisah tersendiri.
+  const identityFields = [
     ["Jenis", v.jenisBarang || "-"],
     ["Cokim", v.cokimTerima || "-"],
+  ];
+
+  const detailFields = [
     ["Surat", v.surat || "-"],
     ["Sales", v.kodeSales || "-"],
     ["Toko", v.namaToko || "-"],
@@ -454,18 +460,21 @@ function buildStoreReceipt(id, v) {
     ["Harga/gram", formatRupiah(v.hargaPerGram)],
   ];
 
-  const rows = fields
-    .map(
-      ([label, value]) => `<div class="tr-row"><span class="k">${label}</span><span class="v">${value}</span></div>`,
-    )
-    .join("");
+  const renderRows = (arr) =>
+    arr
+      .map(
+        ([label, value]) => `<div class="tr-row"><span class="k">${label}</span><span class="v">${value}</span></div>`,
+      )
+      .join("");
 
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN NOTA LUAR UBER</div>
       <div class="tr-sub">${id}</div>
       <hr />
-      ${rows}
+      ${renderRows(identityFields)}
+      <hr />
+      ${renderRows(detailFields)}
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
     </div>`;
@@ -484,17 +493,21 @@ function buildCombinedReceipt(id, v) {
 }
 
 /**
- * CSS struk thermal untuk printer POS-58 (kertas roll 58mm).
- * "size: 58mm auto" - tinggi halaman mengikuti panjang konten,
- * bukan angka tetap - menghindari halaman kosong berlebih maupun
- * konten yang terpotong.
+ * CSS struk thermal untuk printer POS-58 / BM9000 dengan kertas roll
+ * 57mm. Lebar KONTEN sengaja dibuat 48mm (bukan 57-58mm penuh) karena
+ * kepala cetak printer kelas ini rata-rata hanya ~48mm walau kertas
+ * fisiknya 57-58mm - inilah sebab teks selalu terpotong rata di kiri
+ * & kanan ("adar Fisik", "arga/gram") ketika konten dibuat selebar
+ * kertas penuh. "size: ... auto" membuat tinggi halaman mengikuti
+ * panjang konten, bukan angka tetap - menghindari halaman kosong
+ * berlebih maupun konten yang terpotong secara vertikal.
  */
 const THERMAL_PRINT_STYLE = `
-  @page { size: 58mm auto; margin: 0; }
+  @page { size: 48mm auto; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 58mm; }
+  html, body { width: 48mm; }
   body { font-family: "Segoe UI", Arial, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .thermal-receipt { width: 58mm; padding: 2mm 2.5mm; page-break-after: avoid; page-break-inside: avoid; }
+  .thermal-receipt { width: 48mm; padding: 1.5mm 1.5mm; page-break-after: avoid; page-break-inside: avoid; }
   .thermal-receipt .tr-title { text-align: center; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 1.2mm; }
   .thermal-receipt .tr-sub { text-align: center; font-size: 8pt; margin-bottom: 1.8mm; }
   .thermal-receipt hr { border: none; border-top: 0.4mm dashed #000; margin: 1.2mm 0; }
@@ -599,11 +612,13 @@ async function generatePdf(id) {
   }
 
   document.getElementById("loadingOverlay").classList.add("show");
-  updateLoadingMessage("Mengambil gambar dari server...");
+  updateLoadingMessage("Mengambil data & gambar dari server...");
 
   try {
     const result = await apiGet({ action: "getimages", id });
     const images = result.images || [];
+    const customerPhotos = result.customerPhotos || [];
+    const customer = data.idCustomer ? findCustomerById(data.idCustomer) : null;
 
     updateLoadingMessage("Menyusun file PDF...");
 
@@ -611,6 +626,7 @@ async function generatePdf(id) {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
 
     // ------- HALAMAN 1: COVER (ID NOTLU + hari & tanggal) -------
     const tanggalObj = data.timestamp ? new Date(data.timestamp) : new Date();
@@ -638,7 +654,6 @@ async function generatePdf(id) {
     doc.setFontSize(13);
     doc.text(hariTanggal, pageWidth / 2, 82, { align: "center" });
 
-    const customer = data.idCustomer ? findCustomerById(data.idCustomer) : null;
     if (customer) {
       doc.setFontSize(11);
       doc.text(`Customer: ${customer.nama} (${customer.idCustomer})`, pageWidth / 2, 92, {
@@ -648,13 +663,150 @@ async function generatePdf(id) {
 
     doc.setFontSize(10);
     doc.setTextColor(120, 120, 120);
-    doc.text(`Jumlah lampiran foto: ${images.length}`, pageWidth / 2, pageHeight - 20, {
-      align: "center",
-    });
+    doc.text(
+      `Halaman berikutnya: detail transaksi, detail customer, dan ${images.length} lampiran foto`,
+      pageWidth / 2,
+      pageHeight - 20,
+      { align: "center", maxWidth: pageWidth - margin * 2 },
+    );
     doc.setTextColor(0, 0, 0);
 
-    // ------- HALAMAN BERIKUTNYA: 1 FOTO PER HALAMAN -------
-    const margin = 15;
+    // ------- HELPER: render daftar label-value dengan wrap otomatis -------
+    const labelWidth = 52;
+    function drawSectionTitle(title, y) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text(title, margin, y);
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y + 2.5, pageWidth - margin, y + 2.5);
+      return y + 10;
+    }
+
+    function drawFieldRows(fields, startY) {
+      let y = startY;
+      doc.setFontSize(10);
+      fields.forEach(([label, value]) => {
+        const text = value === undefined || value === null || value === "" ? "-" : String(value);
+        const lines = doc.splitTextToSize(text, pageWidth - margin * 2 - labelWidth);
+        const rowHeight = 6 * Math.max(1, lines.length);
+
+        if (y + rowHeight > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.text(String(label), margin, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(lines, margin + labelWidth, y);
+        y += rowHeight;
+      });
+      return y;
+    }
+
+    // ------- HALAMAN 2: DETAIL TRANSAKSI (lengkap) -------
+    doc.addPage();
+    let y = drawSectionTitle("DETAIL TRANSAKSI", margin);
+
+    const transaksiFields = [
+      ["ID Transaksi", data.id],
+      ["Tanggal & Waktu", formatDate(data.timestamp)],
+      ["Kode Sales", data.kodeSales],
+      ["Cokim Terima", data.cokimTerima],
+      ["Jenis Barang", data.jenisBarang],
+      ["Surat", data.surat],
+      ["Nama Toko", data.namaToko],
+      ["Kadar Fisik", data.kadarFisik],
+      ["Presentase Mesin", data.presentaseMesin !== "" && data.presentaseMesin != null ? `${data.presentaseMesin}%` : "-"],
+      ["Kadar Mesin", data.kadarMesin],
+      ["Kode Pabrik", data.kodePabrik],
+      ["Berat Surat", data.beratSurat !== "" && data.beratSurat != null ? `${data.beratSurat} g` : "-"],
+      ["Berat Fisik", data.beratFisik !== "" && data.beratFisik != null ? `${data.beratFisik} g` : "-"],
+      ["Susut", data.susut !== "" && data.susut != null ? `${data.susut} g` : "-"],
+      ["Berat Terima", data.beratTerima !== "" && data.beratTerima != null ? `${data.beratTerima} g` : "-"],
+      ["Kondisi Perhiasan", data.kondisiPerhiasan],
+      ["Model", data.model],
+      ["Rate Terima", data.rateTerima],
+      ["Harga/gram", formatRupiah(data.hargaPerGram)],
+      ["Harga Terima", formatRupiah(data.hargaTerima)],
+      ["Status Cetak", data.statusCetak],
+    ];
+
+    y = drawFieldRows(transaksiFields, y);
+
+    // ------- HALAMAN BERIKUTNYA: DETAIL CUSTOMER + FOTO CUSTOMER -------
+    doc.addPage();
+    y = drawSectionTitle("DETAIL CUSTOMER", margin);
+
+    if (customer) {
+      y = drawFieldRows(
+        [
+          ["ID Customer", customer.idCustomer],
+          ["Nama Customer", customer.nama],
+          ["Jumlah Foto", customerPhotos.length],
+        ],
+        y,
+      );
+
+      if (customerPhotos.length) {
+        y += 4;
+        if (y > pageHeight - margin - 60) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text("Foto Customer", margin, y);
+        y += 6;
+
+        const thumbBox = 58; // mm, area maksimum per foto (persegi)
+        const gap = 6;
+        let x = margin;
+
+        for (let i = 0; i < customerPhotos.length; i++) {
+          const img = customerPhotos[i];
+          const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
+
+          if (x + thumbBox > pageWidth - margin) {
+            x = margin;
+            y += thumbBox + gap;
+          }
+          if (y + thumbBox > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+            x = margin;
+          }
+
+          try {
+            const natural = await getImageNaturalSize(dataUrl);
+            const fitted = fitImageToArea(natural.width, natural.height, thumbBox, thumbBox);
+            const offsetX = x + (thumbBox - fitted.width) / 2;
+            const offsetY = y + (thumbBox - fitted.height) / 2;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.2);
+            doc.rect(x, y, thumbBox, thumbBox);
+            doc.addImage(dataUrl, "JPEG", offsetX, offsetY, fitted.width, fitted.height);
+          } catch (imgErr) {
+            console.error("Gagal menempel foto customer ke PDF:", imgErr);
+          }
+
+          x += thumbBox + gap;
+        }
+        y += thumbBox + 8;
+      } else {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.text("Tidak ada foto customer tersimpan.", margin, y);
+        y += 8;
+      }
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("Transaksi ini tidak terhubung dengan data customer manapun.", margin, y);
+    }
+
+    // ------- HALAMAN BERIKUTNYA: 1 FOTO ITEM TRANSAKSI PER HALAMAN -------
     const maxWidth = pageWidth - margin * 2;
     const maxHeight = pageHeight - margin * 2 - 14; // sisakan ruang untuk label atas
 
@@ -665,7 +817,7 @@ async function generatePdf(id) {
       doc.addPage();
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(`${data.id || id} - Foto ${i + 1} / ${images.length}`, pageWidth / 2, margin, {
+      doc.text(`${data.id || id} - Foto Barang ${i + 1} / ${images.length}`, pageWidth / 2, margin, {
         align: "center",
       });
 
@@ -673,8 +825,8 @@ async function generatePdf(id) {
         const natural = await getImageNaturalSize(dataUrl);
         const fitted = fitImageToArea(natural.width, natural.height, maxWidth, maxHeight);
         const x = (pageWidth - fitted.width) / 2;
-        const y = margin + 8 + (maxHeight - fitted.height) / 2;
-        doc.addImage(dataUrl, "JPEG", x, y, fitted.width, fitted.height);
+        const yImg = margin + 8 + (maxHeight - fitted.height) / 2;
+        doc.addImage(dataUrl, "JPEG", x, yImg, fitted.width, fitted.height);
       } catch (imgErr) {
         console.error("Gagal menempel gambar ke PDF:", imgErr);
         doc.setFont("helvetica", "normal");
