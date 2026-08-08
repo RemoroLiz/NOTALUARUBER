@@ -440,6 +440,12 @@ header h1 i {
 
 .customer-photo-section > label i { color: var(--gold-dark); margin-right: 6px; }
 
+.edit-image-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
 .image-upload-container {
   border: 2px dashed var(--border);
   border-radius: var(--radius);
