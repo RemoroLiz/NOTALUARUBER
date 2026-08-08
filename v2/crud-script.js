@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw92vDNO0RzDLrF-IW_ruQZQA0Vpgnrel1uhBO8QuGjjAFrzIygYlzaNBm5zNOgtXkU/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 5,
 };
@@ -473,10 +473,7 @@ function buildStoreReceipt(id, v) {
 
 /**
  * Satu dokumen print berisi struk customer + laporan toko sekaligus
- * (dipisah jarak beberapa cm), supaya hanya 1x window.print() yang
- * dipanggil - menghindari race 2 print job terpisah yang sebelumnya
- * menyebabkan hasil cetak ganda/tertukar/terpotong di sebagian
- * browser & printer thermal.
+ * (dipisah jarak beberapa cm).
  */
 function buildCombinedReceipt(id, v) {
   return `
@@ -486,16 +483,85 @@ function buildCombinedReceipt(id, v) {
   `;
 }
 
-function printReceipt(id, v) {
-  const printArea = document.getElementById("printArea");
-  printArea.innerHTML = buildCombinedReceipt(id, v);
-  window.print();
+/**
+ * CSS struk thermal untuk printer POS-58 (kertas roll 58mm).
+ * "size: 58mm auto" - tinggi halaman mengikuti panjang konten,
+ * bukan angka tetap - menghindari halaman kosong berlebih maupun
+ * konten yang terpotong.
+ */
+const THERMAL_PRINT_STYLE = `
+  @page { size: 58mm auto; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 58mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .thermal-receipt { width: 58mm; padding: 2mm 2.5mm; page-break-after: avoid; page-break-inside: avoid; }
+  .thermal-receipt .tr-title { text-align: center; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 1.2mm; }
+  .thermal-receipt .tr-sub { text-align: center; font-size: 8pt; margin-bottom: 1.8mm; }
+  .thermal-receipt hr { border: none; border-top: 0.4mm dashed #000; margin: 1.2mm 0; }
+  .thermal-receipt .tr-row { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; font-size: 8.5pt; line-height: 1.55; }
+  .thermal-receipt .tr-row .k { white-space: nowrap; }
+  .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; word-break: break-word; }
+  .thermal-receipt .tr-total { font-size: 9.5pt; font-weight: 700; display: flex; justify-content: space-between; margin-top: 1.5mm; }
+  .thermal-receipt .tr-footer { text-align: center; font-size: 7.5pt; margin-top: 1.8mm; }
+  .tr-gap { height: 12mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
+  .tr-gap span { font-size: 7pt; letter-spacing: 1px; color: #444; border-top: 0.3mm dashed #999; border-bottom: 0.3mm dashed #999; padding: 1.5mm 0; width: 100%; text-align: center; }
+`;
+
+/**
+ * Mencetak lewat IFRAME TERSEMBUNYI berisi HANYA HTML struk (bukan
+ * lagi menumpang di halaman CRUD lalu menyembunyikan sisanya pakai
+ * @media print). Ini menghilangkan sepenuhnya kemungkinan halaman
+ * Data Management ikut tercetak/terlihat dobel, di browser & driver
+ * printer manapun.
+ */
+function printThermalDocument(bodyHtml) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;";
+    iframe.setAttribute("aria-hidden", "true");
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(
+      `<!doctype html><html><head><meta charset="UTF-8" /><title>Struk</title><style>${THERMAL_PRINT_STYLE}</style></head><body>${bodyHtml}</body></html>`,
+    );
+    doc.close();
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 500);
+      resolve();
+    };
+
+    const triggerPrint = () => {
+      if (done) return;
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error("Gagal mencetak struk:", err);
+      }
+      finish();
+    };
+
+    iframe.onload = () => setTimeout(triggerPrint, 100);
+    setTimeout(triggerPrint, 500);
+  });
+}
+
+async function printReceipt(id, v) {
+  await printThermalDocument(buildCombinedReceipt(id, v));
 }
 
 async function reprintById(id) {
   const data = findById(id);
   if (!data) return;
-  printReceipt(id, data);
+  await printReceipt(id, data);
   try {
     await apiPost({ action: "markPrinted", id });
     await loadData();
