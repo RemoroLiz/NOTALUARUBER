@@ -187,6 +187,36 @@
           </div>
           <div class="modal-body">
             <form id="editForm"></form>
+
+            <!-- FOTO TAMBAHAN (BARU): upload foto barang di modal edit,
+                 untuk transaksi yang belum sempat diupload fotonya saat
+                 input awal, atau untuk menambah foto susulan. -->
+            <div class="customer-photo-section" id="editImageSection">
+              <label><i class="fas fa-camera"></i> Tambah Foto Barang</label>
+              <p class="edit-image-hint">
+                Foto lama tetap tersimpan dan tidak akan tertimpa. Foto baru
+                mengisi slot yang masih kosong.
+              </p>
+              <div class="image-upload-container">
+                <div class="image-preview-container" id="editImagePreviewContainer"></div>
+                <div class="upload-controls">
+                  <label for="editImageUpload" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> Pilih Foto Tambahan
+                  </label>
+                  <input
+                    type="file"
+                    id="editImageUpload"
+                    accept="image/*"
+                    multiple
+                    style="display: none"
+                  />
+                  <div class="upload-info">
+                    <span id="selectedEditImageCount">0 foto baru dipilih</span>
+                    <span class="max-info" id="editImageSlotInfo"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" id="cancelEdit">
