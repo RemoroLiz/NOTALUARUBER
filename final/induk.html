@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DATA INDUK TRANSAKSI - UBER EMAS</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header>
+        <h1><i class="fas fa-receipt"></i> DATA INDUK TRANSAKSI</h1>
+        <p class="subtitle">
+          Daftar Kunjungan/Sesi Transaksi - Satu Induk Bisa Memuat Banyak Barang
+        </p>
+        <div class="connection-status">
+          <div class="status-dot"></div>
+          <span id="connectionText">Terhubung ke Spreadsheet</span>
+        </div>
+
+        <!-- NAVIGATION -->
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i> Form Input
+          </a>
+          <a href="crud.html" class="nav-link">
+            <i class="fas fa-database"></i> Data Management
+          </a>
+          <a href="induk.html" class="nav-link active">
+            <i class="fas fa-receipt"></i> Data Induk
+          </a>
+          <a href="customer.html" class="nav-link">
+            <i class="fas fa-users"></i> Data Customer
+          </a>
+        </nav>
+      </header>
+
+      <!-- INFO BOX -->
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <strong>Petunjuk Penggunaan:</strong> Satu baris di sini = satu kali
+        kunjungan/sesi customer (Nomor Induk), bisa memuat beberapa barang
+        (ID NOTLU) sekaligus. Diurutkan dari yang paling baru dibuat. Klik
+        <i class="fab fa-whatsapp"></i> untuk membuat laporan siap kirim
+        WhatsApp berisi semua barang dalam induk tersebut.
+      </div>
+
+      <!-- STATUS INDICATOR -->
+      <div class="status-indicator" id="statusIndicator">
+        <span id="statusMessage"></span>
+      </div>
+
+      <!-- FILTER & SEARCH -->
+      <div class="filter-section">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari berdasarkan Nomor Induk, nama, atau No HP customer..."
+          />
+        </div>
+        <div class="filter-controls">
+          <button id="resetFilter" class="btn btn-secondary">
+            <i class="fas fa-redo-alt"></i> Reset Pencarian
+          </button>
+        </div>
+      </div>
+
+      <!-- DATA TABLE -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2><i class="fas fa-list-ol"></i> Daftar Induk Transaksi</h2>
+          <div class="table-actions">
+            <div class="table-info">
+              <span id="totalRecords">Total: 0 induk transaksi</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nomor Induk</th>
+                <th>Customer</th>
+                <th>Tanggal &amp; Jam</th>
+                <th>Jumlah Barang</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- LOADING DATA -->
+        <div id="loadingData" class="loading-data">
+          <div class="spinner"></div>
+          <p>Memuat data...</p>
+        </div>
+
+        <!-- NO DATA MESSAGE -->
+        <div id="noDataMessage" class="no-data-message">
+          <i class="fas fa-receipt"></i>
+          <h3>Tidak Ada Data</h3>
+          <p>Belum ada induk transaksi yang tersimpan.</p>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer>
+        <p><strong>DATA INDUK TRANSAKSI UBER - Sistem Manajemen Data</strong></p>
+        <p>
+          © 2023 - <span id="currentYear"></span> | Versi 4.0 | Terhubung ke:
+          <a
+            href="https://docs.google.com/spreadsheets/d/1U80Gaoy-zAXj_eOLGtEzXDAsupia1femVQHjE9uJJ5w/edit?usp=sharing"
+            target="_blank"
+            >Google Spreadsheet</a
+          >
+        </p>
+      </footer>
+
+      <!-- MODAL DETAIL INDUK -->
+      <div id="indukDetailModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3><i class="fas fa-receipt"></i> Detail Induk - <span id="indukDetailLabel"></span></h3>
+            <button class="modal-close" id="closeIndukDetailModal">&times;</button>
+          </div>
+          <div class="modal-body" id="indukDetailContent"></div>
+          <div class="modal-footer">
+            <button class="btn btn-wa" id="waFromIndukDetail">
+              <i class="fab fa-whatsapp"></i> Laporan WA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL LAPORAN WA -->
+      <div id="waReportModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3><i class="fab fa-whatsapp"></i> Laporan WhatsApp - <span id="waReportIndukLabel"></span></h3>
+            <button class="modal-close" id="closeWaReportModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p class="edit-image-hint">
+              Salin teks di bawah ini lalu tempel ke chat WhatsApp, atau unduh
+              sebagai file .txt.
+            </p>
+            <textarea id="waReportTextarea" class="wa-report-textarea" readonly></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="downloadWaReport">
+              <i class="fas fa-download"></i> Download .txt
+            </button>
+            <button class="btn btn-wa" id="copyWaReport">
+              <i class="fas fa-copy"></i> Salin ke Clipboard
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOADING OVERLAY -->
+      <div class="loading" id="loadingOverlay">
+        <div class="spinner"></div>
+        <h3>Memproses...</h3>
+        <p id="loadingMessage">Mohon tunggu sebentar</p>
+      </div>
+    </div>
+
+    <script src="induk-script.js"></script>
+  </body>
+</html>
