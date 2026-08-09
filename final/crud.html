@@ -37,6 +37,9 @@
           <a href="crud.html" class="nav-link active">
             <i class="fas fa-database"></i> Data Management
           </a>
+          <a href="induk.html" class="nav-link">
+            <i class="fas fa-receipt"></i> Data Induk
+          </a>
           <a href="customer.html" class="nav-link">
             <i class="fas fa-users"></i> Data Customer
           </a>
@@ -174,9 +177,6 @@
             <button class="btn btn-danger" id="pdfFromDetail">
               <i class="fas fa-file-pdf"></i> Cetak PDF
             </button>
-            <button class="btn btn-wa" id="waFromDetail">
-              <i class="fab fa-whatsapp"></i> Laporan WA
-            </button>
             <button class="btn btn-primary" id="editFromDetail">
               <i class="fas fa-edit"></i> Edit Data
             </button>
@@ -184,30 +184,7 @@
         </div>
       </div>
 
-      <!-- MODAL LAPORAN WA (BARU) -->
-      <div id="waReportModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3><i class="fab fa-whatsapp"></i> Laporan WhatsApp - <span id="waReportIndukLabel"></span></h3>
-            <button class="modal-close" id="closeWaReportModal">&times;</button>
-          </div>
-          <div class="modal-body">
-            <p class="edit-image-hint">
-              Salin teks di bawah ini lalu tempel ke chat WhatsApp, atau unduh
-              sebagai file .txt.
-            </p>
-            <textarea id="waReportTextarea" class="wa-report-textarea" readonly></textarea>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" id="downloadWaReport">
-              <i class="fas fa-download"></i> Download .txt
-            </button>
-            <button class="btn btn-wa" id="copyWaReport">
-              <i class="fas fa-copy"></i> Salin ke Clipboard
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Laporan WA sekarang di halaman Data Induk (induk.html) -->
 
       <!-- MODAL EDIT -->
       <div id="editModal" class="modal">
