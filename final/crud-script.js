@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwFuiMtd1Dbs0AQJDX5WHy7JVC9ZzZBjTpL26v4ALvj50lx7Hi37Lv84s8F0d2rVXku/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   PAGE_SIZE: 15,
   MAX_IMAGES: 10,
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi (BARU - untuk upload gambar tambahan saat edit)
@@ -195,26 +195,50 @@ function renderTable() {
           <td>${formatRupiah(row.hargaTerima)}</td>
           <td><span class="badge ${badgeClass}">${row.statusCetak || "BELUM CETAK"}</span></td>
           <td>
-            <div class="action-buttons">
-              <button class="btn-icon btn-view" data-id="${row.id}" title="Detail"><i class="fas fa-eye"></i></button>
-              <button class="btn-icon btn-edit" data-id="${row.id}" title="Edit"><i class="fas fa-edit"></i></button>
-              <button class="btn-icon btn-print" data-id="${row.id}" title="Cetak Ulang"><i class="fas fa-print"></i></button>
-              <button class="btn-icon btn-pdf" data-id="${row.id}" title="Cetak PDF"><i class="fas fa-file-pdf"></i></button>
-              <button class="btn-icon btn-wa" data-id="${row.id}" title="Laporan WA"><i class="fab fa-whatsapp"></i></button>
-              <button class="btn-icon btn-delete" data-id="${row.id}" title="Hapus"><i class="fas fa-trash"></i></button>
+            <div class="action-menu-wrap">
+              <button class="btn-icon btn-action-toggle" data-id="${row.id}" title="Aksi"><i class="fas fa-bars"></i></button>
+              <div class="action-dropdown" data-dropdown-id="${row.id}">
+                <button class="action-dropdown-item btn-view" data-id="${row.id}"><i class="fas fa-eye"></i> Detail</button>
+                <button class="action-dropdown-item btn-edit" data-id="${row.id}"><i class="fas fa-edit"></i> Edit</button>
+                <button class="action-dropdown-item btn-print" data-id="${row.id}"><i class="fas fa-print"></i> Cetak Ulang</button>
+                <button class="action-dropdown-item btn-pdf" data-id="${row.id}"><i class="fas fa-file-pdf"></i> Cetak PDF</button>
+                <button class="action-dropdown-item btn-delete" data-id="${row.id}"><i class="fas fa-trash"></i> Hapus</button>
+              </div>
             </div>
           </td>
         </tr>`;
     })
     .join("");
 
-  tableBody.querySelectorAll(".btn-view").forEach((b) => b.addEventListener("click", () => showDetail(b.dataset.id)));
-  tableBody.querySelectorAll(".btn-edit").forEach((b) => b.addEventListener("click", () => openEditModal(b.dataset.id)));
-  tableBody.querySelectorAll(".btn-print").forEach((b) => b.addEventListener("click", () => reprintById(b.dataset.id)));
-  tableBody.querySelectorAll(".btn-pdf").forEach((b) => b.addEventListener("click", () => generatePdf(b.dataset.id)));
-  tableBody.querySelectorAll(".btn-wa").forEach((b) => b.addEventListener("click", () => generateWhatsappReport(b.dataset.id)));
-  tableBody.querySelectorAll(".btn-delete").forEach((b) => b.addEventListener("click", () => deleteRecord(b.dataset.id)));
+  tableBody.querySelectorAll(".btn-view").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); showDetail(b.dataset.id); }));
+  tableBody.querySelectorAll(".btn-edit").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); openEditModal(b.dataset.id); }));
+  tableBody.querySelectorAll(".btn-print").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); reprintById(b.dataset.id); }));
+  tableBody.querySelectorAll(".btn-pdf").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); generatePdf(b.dataset.id); }));
+  tableBody.querySelectorAll(".btn-delete").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); deleteRecord(b.dataset.id); }));
+
+  tableBody.querySelectorAll(".btn-action-toggle").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const dropdown = btn.nextElementSibling;
+      const wasOpen = dropdown.classList.contains("show");
+      closeAllActionDropdowns();
+      if (!wasOpen) dropdown.classList.add("show");
+    });
+  });
 }
+
+/**
+ * Menu aksi per baris (BARU) - tadinya 5 ikon berjejer di setiap
+ * baris membuat tabel melebar ke samping, terutama di layar sempit.
+ * Sekarang dipadatkan jadi satu tombol "garis tiga" yang membuka
+ * daftar aksi sebagai dropdown, ditutup lagi begitu salah satu aksi
+ * diklik atau area lain di halaman diklik.
+ */
+function closeAllActionDropdowns() {
+  document.querySelectorAll(".action-dropdown.show").forEach((d) => d.classList.remove("show"));
+}
+
+document.addEventListener("click", () => closeAllActionDropdowns());
 
 function findById(id) {
   return allData.find((r) => String(r.id) === String(id));
@@ -1032,123 +1056,6 @@ async function generatePdf(id) {
 }
 
 // ==============================
-// LAPORAN WHATSAPP (BARU) - berdasarkan Nomor Induk Transaksi,
-// memuat SEMUA barang (NOTLU) di bawah induk yang sama dalam satu
-// file .txt siap tempel ke WhatsApp.
-// ==============================
-
-/**
- * Field yang HARUS diberi tanda ❌ kalau kosong (sesuai format yang
- * diminta): Surat, Toko, Kadar Fisik, Kode Pabrik, Berat Surat,
- * Berat Fisik. Field lain di luar daftar ini cukup ditandai "-".
- */
-function waFieldValue(value, useCrossWhenEmpty) {
-  if (value === undefined || value === null || String(value).trim() === "") {
-    return useCrossWhenEmpty ? "❌" : "-";
-  }
-  return String(value);
-}
-
-function waWeightValue(value, useCrossWhenEmpty) {
-  if (value === undefined || value === null || String(value).trim() === "") {
-    return useCrossWhenEmpty ? "❌" : "-";
-  }
-  return `${value} g`;
-}
-
-function waPercentValue(value) {
-  if (value === undefined || value === null || String(value).trim() === "") return "-";
-  return `${value}%`;
-}
-
-function buildWhatsappReportText(induk, customer, items) {
-  const SEP = "-------------------------------------------------------------------";
-  const lines = [];
-
-  lines.push(`Kode Induk : ${induk.nomorInduk}`);
-  lines.push(`Nama Customer : ${customer ? customer.nama : "-"}`);
-  lines.push(`No HP : ${customer && customer.noHp ? customer.noHp : "-"}`);
-  lines.push("");
-
-  const sortedItems = items
-    .slice()
-    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-  sortedItems.forEach((item) => {
-    lines.push(SEP);
-    lines.push(item.id);
-    lines.push("🏎‍🟀TERIMA NOTALUAR UBER💨");
-    lines.push("");
-    lines.push(`Kode Transaksi : ${item.id}`);
-    lines.push(`Waktu & Tanggal : ${formatDate(item.timestamp)}`);
-    lines.push("");
-    lines.push(SEP);
-    lines.push(`Jenis : ${waFieldValue(item.jenisBarang, false)}`);
-    lines.push(`Cokim : ${waFieldValue(item.cokimTerima, false)}`);
-    lines.push(`Surat : ${waFieldValue(item.surat, true)}`);
-    lines.push(`Sales : ${waFieldValue(item.kodeSales, false)}`);
-    lines.push(`Toko : ${waFieldValue(item.namaToko, true)}`);
-    lines.push(`Kadar Fisik : ${waFieldValue(item.kadarFisik, true)}`);
-    lines.push(`Kadar Mesin : ${waFieldValue(item.kadarMesin, false)}`);
-    lines.push(`% Mesin : ${waPercentValue(item.presentaseMesin)}`);
-    lines.push(`Kode Pabrik : ${waFieldValue(item.kodePabrik, true)}`);
-    lines.push(`% Potong : ${waPercentValue(item.presentasePotong)}`);
-    lines.push(`Kadar Potong : ${waFieldValue(item.kadarPotong, false)}`);
-    lines.push(`Berat Surat : ${waWeightValue(item.beratSurat, true)}`);
-    lines.push(`Berat Fisik : ${waWeightValue(item.beratFisik, true)}`);
-    lines.push(`Susut : ${waWeightValue(item.susut, false)}`);
-    lines.push(`Berat Terima : ${waWeightValue(item.beratTerima, false)}`);
-    lines.push(`Kondisi : ${waFieldValue(item.kondisiPerhiasan, false)}`);
-    lines.push(`Model : ${waFieldValue(item.model, false)}`);
-    lines.push(`Rate yang di pakai : ${waPercentValue(item.rateTerima)}`);
-    lines.push(`Harga/gram : ${formatRupiah(item.hargaPerGram)}`);
-    lines.push(`HARGA TERIMA : ${formatRupiah(item.hargaTerima)}`);
-    lines.push("Sudah di uji, potong, amplas dan");
-    lines.push("gosok");
-    lines.push("");
-    lines.push("🏎‍🟀 Izin Proses Terima kasih 💨");
-  });
-
-  lines.push(SEP);
-
-  return lines.join("\n");
-}
-
-async function generateWhatsappReport(id) {
-  const data = findById(id);
-  if (!data) {
-    showStatus("Data tidak ditemukan.", false);
-    return;
-  }
-  if (!data.nomorInduk) {
-    showStatus("Transaksi ini tidak punya Nomor Induk Transaksi (data lama sebelum fitur ini ada).", false, 7000);
-    return;
-  }
-
-  document.getElementById("loadingOverlay").classList.add("show");
-  updateLoadingMessage("Menyusun laporan WhatsApp...");
-
-  try {
-    const result = await apiGet({ action: "indukgetbyid", id: data.nomorInduk });
-    const txt = buildWhatsappReportText(result.induk, result.customer, result.items);
-    showWaReportModal(data.nomorInduk, txt);
-  } catch (err) {
-    console.error(err);
-    showStatus(`Gagal menyusun laporan WA: ${err.message}`, false, 7000);
-  } finally {
-    document.getElementById("loadingOverlay").classList.remove("show");
-  }
-}
-
-function showWaReportModal(nomorInduk, txt) {
-  document.getElementById("waReportIndukLabel").textContent = nomorInduk;
-  const textarea = document.getElementById("waReportTextarea");
-  textarea.value = txt;
-  textarea.dataset.nomorInduk = nomorInduk;
-  document.getElementById("waReportModal").classList.add("show");
-}
-
-// ==============================
 // FILTER, SEARCH, PAGINASI - EVENTS
 // ==============================
 let searchDebounce;
@@ -1218,9 +1125,6 @@ document.getElementById("printFromDetail").addEventListener("click", () => {
 document.getElementById("pdfFromDetail").addEventListener("click", () => {
   if (currentDetailId) generatePdf(currentDetailId);
 });
-document.getElementById("waFromDetail").addEventListener("click", () => {
-  if (currentDetailId) generateWhatsappReport(currentDetailId);
-});
 document.getElementById("editFromDetail").addEventListener("click", () => {
   if (currentDetailId) {
     document.getElementById("detailModal").classList.remove("show");
@@ -1228,40 +1132,7 @@ document.getElementById("editFromDetail").addEventListener("click", () => {
   }
 });
 
-// ---- MODAL LAPORAN WA (BARU) ----
-document.getElementById("closeWaReportModal").addEventListener("click", () => {
-  document.getElementById("waReportModal").classList.remove("show");
-});
-document.getElementById("waReportModal").addEventListener("click", (e) => {
-  if (e.target.id === "waReportModal") e.currentTarget.classList.remove("show");
-});
-document.getElementById("downloadWaReport").addEventListener("click", () => {
-  const textarea = document.getElementById("waReportTextarea");
-  const nomorInduk = textarea.dataset.nomorInduk || "laporan";
-  const blob = new Blob([textarea.value], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Laporan-WA-${nomorInduk}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-document.getElementById("copyWaReport").addEventListener("click", async () => {
-  const textarea = document.getElementById("waReportTextarea");
-  try {
-    await navigator.clipboard.writeText(textarea.value);
-    showStatus("Teks laporan berhasil disalin ke clipboard.", true, 3000);
-  } catch (err) {
-    // Fallback untuk browser yang tidak mendukung navigator.clipboard
-    textarea.removeAttribute("readonly");
-    textarea.select();
-    document.execCommand("copy");
-    textarea.setAttribute("readonly", "readonly");
-    showStatus("Teks laporan berhasil disalin ke clipboard.", true, 3000);
-  }
-});
+// Laporan WA sekarang di halaman Data Induk (induk.html)
 
 // ==============================
 // INIT
