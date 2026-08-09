@@ -889,6 +889,23 @@ tbody tr:hover { background: #fbf7ea; }
 .btn-edit { background: #fff3cd; color: #916600; }
 .btn-print { background: #ede7f6; color: #5e35b1; }
 .btn-pdf { background: #ffebee; color: #c62828; }
+.btn-wa { background: #e7f9ef; color: #128c4a; }
+.btn-wa:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(18, 140, 74, 0.3); }
+
+.wa-report-textarea {
+  width: 100%;
+  min-height: 420px;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre;
+  resize: vertical;
+  background: #fafafa;
+  color: var(--text);
+}
 .btn-delete { background: var(--error-bg); color: var(--error); }
 
 .customer-tag {
