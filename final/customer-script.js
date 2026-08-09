@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwFuiMtd1Dbs0AQJDX5WHy7JVC9ZzZBjTpL26v4ALvj50lx7Hi37Lv84s8F0d2rVXku/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbw1vBvut6FwYvOMB0s1Tr5OdjJwV0ThJLkNHB1PP-dleOGj_dhh5lQdIBpOPdnWC4JT/exec",
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
   MAX_CUSTOMER_PHOTOS: 3,
@@ -149,7 +149,7 @@ function applyFilter() {
     : allCustomers.filter(
         (c) => String(c.nama).toLowerCase().includes(q) || String(c.noHp || "").toLowerCase().includes(q),
       );
-  filteredCustomers.sort((a, b) => String(a.nama).localeCompare(String(b.nama)));
+  filteredCustomers.sort((a, b) => String(a.idCustomer).localeCompare(String(b.idCustomer)));
   renderTable();
 }
 
