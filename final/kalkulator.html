@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KALKULATOR HARGA EMAS - UBER EMAS</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+      <header>
+        <h1><i class="fas fa-calculator"></i> KALKULATOR HARGA EMAS</h1>
+        <p class="subtitle">
+          Simulasi Cepat Cokim &times; Rate &times; Berat - Tidak Disimpan
+        </p>
+        <div class="connection-status">
+          <div class="status-dot"></div>
+          <span>Mode Kalkulator (Offline, Tanpa Spreadsheet)</span>
+        </div>
+
+        <!-- NAVIGATION -->
+        <nav class="main-nav">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i> Form Input
+          </a>
+          <a href="crud.html" class="nav-link">
+            <i class="fas fa-database"></i> Data Management
+          </a>
+          <a href="induk.html" class="nav-link">
+            <i class="fas fa-receipt"></i> Data Induk
+          </a>
+          <a href="customer.html" class="nav-link">
+            <i class="fas fa-users"></i> Data Customer
+          </a>
+          <a href="kalkulator.html" class="nav-link active">
+            <i class="fas fa-calculator"></i> Kalkulator
+          </a>
+        </nav>
+      </header>
+
+      <!-- INFO BOX -->
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <strong>Petunjuk Penggunaan:</strong> Halaman ini HANYA untuk simulasi
+        harga cepat (mis. sedang nego dengan customer). Hasil perhitungan
+        TIDAK disimpan ke spreadsheet maupun database manapun - kalau
+        transaksi jadi dilakukan, tetap input datanya lewat halaman
+        <strong>Form Input</strong>.
+      </div>
+
+      <!-- STATUS INDICATOR -->
+      <div class="status-indicator" id="statusIndicator">
+        <span id="statusMessage"></span>
+      </div>
+
+      <div class="main-content">
+        <!-- FORM KALKULATOR -->
+        <section class="form-section">
+          <h3 class="step-title">
+            <i class="fas fa-sliders-h"></i> Input Perhitungan
+          </h3>
+
+          <div class="form-group">
+            <label for="calcCokim" class="required"
+              ><i class="fas fa-coins"></i> Cokim</label
+            >
+            <div class="input-with-icon">
+              <i class="fas fa-coins"></i>
+              <input
+                type="number"
+                id="calcCokim"
+                inputmode="decimal"
+                step="any"
+                placeholder="Masukkan nilai cokim"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="calcRate" class="required"
+              ><i class="fas fa-percent"></i> Rate (%)</label
+            >
+            <div class="input-with-icon">
+              <i class="fas fa-percent"></i>
+              <input
+                type="number"
+                id="calcRate"
+                inputmode="decimal"
+                step="any"
+                placeholder="Masukkan persentase rate"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="calcBerat" class="required"
+              ><i class="fas fa-weight-hanging"></i> Berat (gram)</label
+            >
+            <div class="input-with-icon">
+              <i class="fas fa-weight-hanging"></i>
+              <input
+                type="number"
+                id="calcBerat"
+                inputmode="decimal"
+                step="any"
+                placeholder="Masukkan berat dalam gram"
+              />
+            </div>
+          </div>
+
+          <button type="button" id="calcResetBtn" class="btn btn-secondary btn-block">
+            <i class="fas fa-redo-alt"></i> Reset
+          </button>
+        </section>
+
+        <!-- HASIL PERHITUNGAN -->
+        <section class="preview-section">
+          <h3 class="step-title">
+            <i class="fas fa-receipt"></i> Hasil Perhitungan
+          </h3>
+
+          <div class="calc-result-card">
+            <div class="calc-result-row">
+              <span class="label">Cokim</span>
+              <span class="value" id="calcOutCokim">-</span>
+            </div>
+            <div class="calc-result-row">
+              <span class="label">Rate</span>
+              <span class="value" id="calcOutRate">-</span>
+            </div>
+            <div class="calc-result-row">
+              <span class="label">Berat</span>
+              <span class="value" id="calcOutBerat">-</span>
+            </div>
+            <div class="calc-result-row">
+              <span class="label">Harga / gram</span>
+              <span class="value" id="calcOutHargaGram">Rp 0</span>
+            </div>
+            <div class="calc-result-row calc-total">
+              <span class="label">TOTAL HARGA</span>
+              <span class="value" id="calcOutTotal">Rp 0</span>
+            </div>
+          </div>
+
+          <div class="calc-note">
+            <i class="fas fa-lightbulb"></i> Rumus: Harga/gram = (Cokim
+            &times; Rate%) dibulatkan ke bawah kelipatan Rp 500. Total Harga =
+            Berat &times; Harga/gram, dibulatkan ke bawah kelipatan Rp 500.
+          </div>
+
+          <div class="preview-actions">
+            <button type="button" id="calcPrintBtn" class="btn btn-danger" disabled>
+              <i class="fas fa-print"></i> Cetak Thermal
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- FOOTER -->
+      <footer>
+        <p><strong>KALKULATOR HARGA EMAS UBER - Simulasi Cepat</strong></p>
+        <p>© 2023 - <span id="currentYear"></span> | Versi 4.0</p>
+        <p class="credit-line"><i class="fas fa-code"></i> Dibuat oleh Kevin Uber</p>
+      </footer>
+    </div>
+
+    <script src="kalkulator-script.js"></script>
+  </body>
+</html>
