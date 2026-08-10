@@ -44,6 +44,36 @@ function formatRupiah(value) {
   return "Rp " + Math.round(num).toLocaleString("id-ID");
 }
 
+/**
+ * Format angka biasa (BUKAN mata uang) dengan separator ribuan
+ * bertitik ala Indonesia - dipakai untuk field seperti Cokim & Rate
+ * supaya tetap mudah dibaca di struk thermal yang fontnya kecil.
+ */
+function formatNumberID(value) {
+  if (value === undefined || value === null || String(value).trim() === "") return "-";
+  const num = Number(value);
+  if (isNaN(num)) return String(value);
+  return num.toLocaleString("id-ID");
+}
+
+/**
+ * Menambahkan garis credit kecil "Dibuat oleh Kevin Uber" di bagian
+ * bawah SETIAP halaman PDF yang sudah dibuat - dipanggil sekali di
+ * akhir, tepat sebelum doc.save(), supaya jumlah halaman final sudah
+ * pasti (termasuk halaman foto yang ditambahkan belakangan).
+ */
+function stampPdfCredit(doc, pageWidth, pageHeight) {
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(7.5);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Dibuat oleh Kevin Uber", pageWidth / 2, pageHeight - 6, { align: "center" });
+    doc.setTextColor(0, 0, 0);
+  }
+}
+
 function formatDate(iso) {
   if (!iso) return "-";
   const d = new Date(iso);
@@ -200,7 +230,8 @@ function renderTable() {
               <div class="action-dropdown" data-dropdown-id="${row.id}">
                 <button class="action-dropdown-item btn-view" data-id="${row.id}"><i class="fas fa-eye"></i> Detail</button>
                 <button class="action-dropdown-item btn-edit" data-id="${row.id}"><i class="fas fa-edit"></i> Edit</button>
-                <button class="action-dropdown-item btn-print" data-id="${row.id}"><i class="fas fa-print"></i> Cetak Ulang</button>
+                <button class="action-dropdown-item btn-print-customer" data-id="${row.id}"><i class="fas fa-receipt"></i> Cetak Customer</button>
+                <button class="action-dropdown-item btn-print-store" data-id="${row.id}"><i class="fas fa-store"></i> Cetak Toko</button>
                 <button class="action-dropdown-item btn-pdf" data-id="${row.id}"><i class="fas fa-file-pdf"></i> Cetak PDF</button>
                 <button class="action-dropdown-item btn-delete" data-id="${row.id}"><i class="fas fa-trash"></i> Hapus</button>
               </div>
@@ -212,7 +243,8 @@ function renderTable() {
 
   tableBody.querySelectorAll(".btn-view").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); showDetail(b.dataset.id); }));
   tableBody.querySelectorAll(".btn-edit").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); openEditModal(b.dataset.id); }));
-  tableBody.querySelectorAll(".btn-print").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); reprintById(b.dataset.id); }));
+  tableBody.querySelectorAll(".btn-print-customer").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); reprintCustomerById(b.dataset.id); }));
+  tableBody.querySelectorAll(".btn-print-store").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); reprintStoreById(b.dataset.id); }));
   tableBody.querySelectorAll(".btn-pdf").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); generatePdf(b.dataset.id); }));
   tableBody.querySelectorAll(".btn-delete").forEach((b) => b.addEventListener("click", () => { closeAllActionDropdowns(); deleteRecord(b.dataset.id); }));
 
@@ -633,7 +665,7 @@ function buildStoreReceipt(id, v) {
   // dengan garis pemisah tersendiri.
   const identityFields = [
     ["Jenis", v.jenisBarang || "-"],
-    ["Cokim", v.cokimTerima || "-"],
+    ["Cokim", formatNumberID(v.cokimTerima)],
   ];
 
   const detailFields = [
@@ -674,19 +706,8 @@ function buildStoreReceipt(id, v) {
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
       <div class="tr-footer tr-footer-note">Sudah di uji, potong, amplas dan gosok</div>
+      <div class="tr-credit">by Kevin Uber</div>
     </div>`;
-}
-
-/**
- * Satu dokumen print berisi struk customer + laporan toko sekaligus
- * (dipisah jarak beberapa cm).
- */
-function buildCombinedReceipt(id, v) {
-  return `
-    ${buildCustomerReceipt(id, v)}
-    <div class="tr-gap"><span>&#9986; gunting di sini &#9986;</span></div>
-    ${buildStoreReceipt(id, v)}
-  `;
 }
 
 /**
@@ -724,6 +745,7 @@ const THERMAL_PRINT_STYLE = `
   .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; word-break: break-word; }
   .thermal-receipt .tr-total { font-size: 9.5pt; font-weight: 700; display: flex; justify-content: space-between; margin-top: 1.5mm; }
   .thermal-receipt .tr-footer { text-align: center; font-size: 7.5pt; margin-top: 1.8mm; }
+  .thermal-receipt .tr-credit { text-align: center; font-size: 6pt; color: #888; margin-top: 1.5mm; }
   .tr-gap { height: 12mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
   .tr-gap span { font-size: 7pt; letter-spacing: 1px; color: #444; border-top: 0.3mm dashed #999; border-bottom: 0.3mm dashed #999; padding: 1.5mm 0; width: 100%; text-align: center; }
 `;
@@ -775,14 +797,35 @@ function printThermalDocument(bodyHtml) {
   });
 }
 
-async function printReceipt(id, v) {
-  await printThermalDocument(buildCombinedReceipt(id, v));
+/**
+ * CETAK TERPISAH (BARU) - struk customer dan laporan toko sekarang
+ * masing-masing 1 print job SENDIRI (bukan digabung dalam 1
+ * dokumen), supaya keduanya bisa dicetak ulang secara independen.
+ */
+async function printCustomerReceipt(id, v) {
+  await printThermalDocument(buildCustomerReceipt(id, v));
 }
 
-async function reprintById(id) {
+async function printStoreReceipt(id, v) {
+  await printThermalDocument(buildStoreReceipt(id, v));
+}
+
+async function reprintCustomerById(id) {
   const data = findById(id);
   if (!data) return;
-  await printReceipt(id, data);
+  await printCustomerReceipt(id, data);
+  try {
+    await apiPost({ action: "markPrinted", id });
+    await loadData();
+  } catch (err) {
+    console.error("Gagal menandai status cetak:", err);
+  }
+}
+
+async function reprintStoreById(id) {
+  const data = findById(id);
+  if (!data) return;
+  await printStoreReceipt(id, data);
   try {
     await apiPost({ action: "markPrinted", id });
     await loadData();
@@ -921,7 +964,7 @@ async function generatePdf(id) {
       ["ID Transaksi", data.id],
       ["Tanggal & Waktu", formatDate(data.timestamp)],
       ["Kode Sales", data.kodeSales],
-      ["Cokim Terima", data.cokimTerima],
+      ["Cokim Terima", formatNumberID(data.cokimTerima)],
       ["Jenis Barang", data.jenisBarang],
       ["Surat", data.surat],
       ["Nama Toko", data.namaToko],
@@ -937,7 +980,7 @@ async function generatePdf(id) {
       ["Berat Terima", data.beratTerima !== "" && data.beratTerima != null ? `${data.beratTerima} g` : "-"],
       ["Kondisi Perhiasan", data.kondisiPerhiasan],
       ["Model", data.model],
-      ["Rate Terima", data.rateTerima],
+      ["Rate Terima", formatNumberID(data.rateTerima)],
       ["Harga/gram", formatRupiah(data.hargaPerGram)],
       ["Harga Terima", formatRupiah(data.hargaTerima)],
       ["Status Cetak", data.statusCetak],
@@ -1045,6 +1088,7 @@ async function generatePdf(id) {
       }
     }
 
+    stampPdfCredit(doc, pageWidth, pageHeight);
     doc.save(`${data.id || id}.pdf`);
     showStatus(`PDF untuk ${data.id || id} berhasil dibuat.`, true);
   } catch (err) {
@@ -1119,8 +1163,11 @@ document.getElementById("editImageUpload").addEventListener("change", (e) => {
   e.target.value = "";
 });
 
-document.getElementById("printFromDetail").addEventListener("click", () => {
-  if (currentDetailId) reprintById(currentDetailId);
+document.getElementById("printCustomerFromDetail").addEventListener("click", () => {
+  if (currentDetailId) reprintCustomerById(currentDetailId);
+});
+document.getElementById("printStoreFromDetail").addEventListener("click", () => {
+  if (currentDetailId) reprintStoreById(currentDetailId);
 });
 document.getElementById("pdfFromDetail").addEventListener("click", () => {
   if (currentDetailId) generatePdf(currentDetailId);
