@@ -14,6 +14,7 @@
       href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
     />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -41,6 +42,9 @@
           </a>
           <a href="customer.html" class="nav-link">
             <i class="fas fa-users"></i> Data Customer
+          </a>
+          <a href="kalkulator.html" class="nav-link">
+            <i class="fas fa-calculator"></i> Kalkulator
           </a>
         </nav>
       </header>
@@ -129,6 +133,7 @@
             >Google Spreadsheet</a
           >
         </p>
+        <p class="credit-line"><i class="fas fa-code"></i> Dibuat oleh Kevin Uber</p>
       </footer>
 
       <!-- MODAL DETAIL INDUK -->
@@ -139,7 +144,61 @@
             <button class="modal-close" id="closeIndukDetailModal">&times;</button>
           </div>
           <div class="modal-body" id="indukDetailContent"></div>
+
+          <!-- DOKUMEN INDUK (BARU): foto MOU, foto KTP, foto customer saat
+               transaksi - minimal 3 foto per Nomor Induk. Upload baru
+               menggantikan foto lama pada slot yang sama. -->
+          <div class="customer-photo-section" id="indukDocsSection" style="padding: 0 24px 14px;">
+            <label><i class="fas fa-id-card"></i> Dokumen Induk (Minimal 3 Foto)</label>
+            <p class="edit-image-hint">
+              Wajib diisi minimal 3 foto per kunjungan: 1 foto MOU, 1 foto
+              KTP, dan 1 foto customer saat transaksi berlangsung. Upload
+              baru akan MENGGANTI foto lama pada slot yang sama.
+            </p>
+            <div class="induk-doc-grid">
+              <div class="induk-doc-slot" data-doc="mou" id="indukDocSlot-mou">
+                <div class="induk-doc-slot-label"><i class="fas fa-file-signature"></i> Foto MOU</div>
+                <div class="induk-doc-preview" id="indukDocPreview-mou">
+                  <span class="induk-doc-preview-empty">Belum ada foto</span>
+                </div>
+                <label class="upload-btn-sm" for="indukDocInput-mou">
+                  <i class="fas fa-camera"></i> Pilih Foto
+                </label>
+                <input type="file" id="indukDocInput-mou" accept="image/*" style="display: none" />
+                <div class="induk-doc-status" id="indukDocStatus-mou"></div>
+              </div>
+              <div class="induk-doc-slot" data-doc="ktp" id="indukDocSlot-ktp">
+                <div class="induk-doc-slot-label"><i class="fas fa-id-card"></i> Foto KTP</div>
+                <div class="induk-doc-preview" id="indukDocPreview-ktp">
+                  <span class="induk-doc-preview-empty">Belum ada foto</span>
+                </div>
+                <label class="upload-btn-sm" for="indukDocInput-ktp">
+                  <i class="fas fa-camera"></i> Pilih Foto
+                </label>
+                <input type="file" id="indukDocInput-ktp" accept="image/*" style="display: none" />
+                <div class="induk-doc-status" id="indukDocStatus-ktp"></div>
+              </div>
+              <div class="induk-doc-slot" data-doc="fotoCustomer" id="indukDocSlot-fotoCustomer">
+                <div class="induk-doc-slot-label"><i class="fas fa-user-circle"></i> Foto Customer</div>
+                <div class="induk-doc-preview" id="indukDocPreview-fotoCustomer">
+                  <span class="induk-doc-preview-empty">Belum ada foto</span>
+                </div>
+                <label class="upload-btn-sm" for="indukDocInput-fotoCustomer">
+                  <i class="fas fa-camera"></i> Pilih Foto
+                </label>
+                <input type="file" id="indukDocInput-fotoCustomer" accept="image/*" style="display: none" />
+                <div class="induk-doc-status" id="indukDocStatus-fotoCustomer"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block" id="saveIndukDocs" style="margin-top: 10px">
+              <i class="fas fa-save"></i> Simpan Dokumen Induk
+            </button>
+          </div>
+
           <div class="modal-footer">
+            <button class="btn btn-secondary" id="pdfFromIndukDetail">
+              <i class="fas fa-file-pdf"></i> Download PDF Laporan
+            </button>
             <button class="btn btn-wa" id="waFromIndukDetail">
               <i class="fab fa-whatsapp"></i> Laporan WA
             </button>
