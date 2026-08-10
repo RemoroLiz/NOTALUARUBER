@@ -1156,3 +1156,114 @@ footer p { margin-bottom: 4px; }
    tercetak/terlihat dobel di browser & driver printer yang berbeda-
    beda perilakunya terhadap @media print.
    ============================================================ */
+
+/* ============================================================
+   CREDIT LINE (BARU) - dipakai di footer semua halaman
+   ============================================================ */
+.credit-line {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+.credit-line i { color: var(--gold-dark); margin-right: 4px; }
+
+/* ============================================================
+   DOKUMEN INDUK (BARU) - upload foto MOU / KTP / Foto Customer
+   per Nomor Induk Transaksi, dipakai di modal Detail Induk
+   (induk.html).
+   ============================================================ */
+.induk-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin: 12px 0 4px;
+}
+
+.induk-doc-slot {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  text-align: center;
+  background: var(--bg);
+}
+
+.induk-doc-slot.has-photo { border-style: solid; border-color: var(--success); }
+
+.induk-doc-slot-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.induk-doc-slot-label i { color: var(--gold-dark); margin-right: 5px; }
+
+.induk-doc-preview {
+  width: 100%;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.induk-doc-preview img { width: 100%; height: 100%; object-fit: cover; }
+.induk-doc-preview-empty { font-size: 0.68rem; color: var(--text-muted); padding: 4px; }
+
+.upload-btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  justify-content: center;
+}
+.upload-btn-sm:hover { background: var(--navy-light); }
+.induk-doc-status { font-size: 0.68rem; color: var(--text-muted); margin-top: 5px; }
+.induk-doc-status.pending { color: var(--gold-dark); font-weight: 600; }
+
+/* ============================================================
+   KALKULATOR HARGA EMAS (BARU) - kalkulator.html
+   ============================================================ */
+.calc-result-card {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  margin-top: 18px;
+}
+.calc-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+  font-size: 0.95rem;
+}
+.calc-result-row:last-child { border-bottom: none; }
+.calc-result-row .label { color: #cfd0e0; }
+.calc-result-row .value { font-weight: 700; }
+.calc-result-row.calc-total { padding-top: 14px; margin-top: 6px; border-top: 2px solid var(--gold); border-bottom: none; }
+.calc-result-row.calc-total .label { color: var(--gold-light); font-size: 1rem; font-weight: 700; }
+.calc-result-row.calc-total .value { color: var(--gold-light); font-size: 1.5rem; }
+
+.calc-note {
+  margin-top: 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: #fff8e1;
+  border-left: 4px solid var(--gold);
+  padding: 10px 14px;
+  border-radius: 8px;
+}
