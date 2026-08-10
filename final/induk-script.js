@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwNo7q2D8oHWp7U75xxfQE4eRk6TeBeOxlFDixb0-XQUPgPIuyAI6mfcz0BXGvGQ4Mt/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbzuhc_5prdNNQR8__9Ztl1p06gLPqnJXPy9eALH6_qkBeRiFTijirO3NiTqYAZ7Zolr/exec",
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
 };
@@ -613,7 +613,7 @@ async function generateIndukPdf(nomorInduk) {
     const margin = 15;
     const labelWidth = 52;
 
-    // ------- HALAMAN 1: COVER -------
+    // ------- HALAMAN 1: DATA INDUK -------
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("LAPORAN INDUK TRANSAKSI UBER EMAS", pageWidth / 2, 40, { align: "center" });
@@ -678,7 +678,15 @@ async function generateIndukPdf(nomorInduk) {
       return y;
     }
 
-    // ------- HALAMAN 2: DETAIL CUSTOMER -------
+    // ------- FOTO INDUK: MOU / KTP / FOTO CUSTOMER SAAT TRANSAKSI -------
+    for (const docType of ["mou", "ktp", "fotoCustomer"]) {
+      const img = indukDocs[docType];
+      if (!img) continue;
+      const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
+      await addImagePageToIndukPdf(doc, pageWidth, pageHeight, margin, dataUrl, `Dokumen Induk - ${INDUK_DOC_LABELS[docType]}`);
+    }
+
+    // ------- DETAIL CUSTOMER -------
     doc.addPage();
     let y = drawSectionTitle("DETAIL CUSTOMER", margin);
     if (customer) {
@@ -694,29 +702,17 @@ async function generateIndukPdf(nomorInduk) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(10);
       doc.text("Induk ini tidak terhubung dengan data customer manapun.", margin, y);
-      y += 8;
     }
 
-    // ------- HALAMAN 2 (lanjutan): RINGKASAN SEMUA BARANG -------
-    y += 4;
-    y = drawSectionTitle("RINGKASAN BARANG", y);
-    if (items.length) {
-      items.forEach((item, idx) => {
-        y = drawFieldRows(
-          [
-            [`${idx + 1}. ${item.id}`, `${item.jenisBarang || "-"} - ${formatRupiah(item.hargaTerima)} - ${item.statusCetak || "BELUM CETAK"}`],
-          ],
-          y,
-        );
-      });
-    } else {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(10);
-      doc.text("Belum ada barang tersimpan di induk ini.", margin, y);
+    // ------- FOTO CUSTOMER -------
+    for (let i = 0; i < customerPhotos.length; i++) {
+      const img = customerPhotos[i];
+      const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
+      await addImagePageToIndukPdf(doc, pageWidth, pageHeight, margin, dataUrl, `Foto Customer ${i + 1} / ${customerPhotos.length}`);
     }
 
-    // ------- HALAMAN BERIKUTNYA: DETAIL LENGKAP TIAP BARANG -------
-    items.forEach((item) => {
+    // ------- DETAIL BARANG N + FOTO BARANG N (berurutan per barang) -------
+    for (const item of items) {
       doc.addPage();
       let iy = drawSectionTitle(`DETAIL BARANG - ${item.id}`, margin);
       const fields = [
@@ -745,31 +741,20 @@ async function generateIndukPdf(nomorInduk) {
         ["Status Cetak", item.statusCetak],
       ];
       drawFieldRows(fields, iy);
-    });
 
-    // ------- FOTO CUSTOMER -------
-    for (let i = 0; i < customerPhotos.length; i++) {
-      const img = customerPhotos[i];
-      const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
-      await addImagePageToIndukPdf(doc, pageWidth, pageHeight, margin, dataUrl, `Foto Customer ${i + 1} / ${customerPhotos.length}`);
-    }
-
-    // ------- DOKUMEN INDUK: MOU / KTP / FOTO CUSTOMER SAAT TRANSAKSI -------
-    for (const docType of ["mou", "ktp", "fotoCustomer"]) {
-      const img = indukDocs[docType];
-      if (!img) continue;
-      const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
-      await addImagePageToIndukPdf(doc, pageWidth, pageHeight, margin, dataUrl, INDUK_DOC_LABELS[docType]);
-    }
-
-    // ------- FOTO TIAP BARANG -------
-    for (const item of items) {
       const images = itemImagesMap[item.id] || [];
       for (let i = 0; i < images.length; i++) {
         const img = images[i];
         const dataUrl = `data:${img.mimeType || "image/jpeg"};base64,${img.data}`;
         await addImagePageToIndukPdf(doc, pageWidth, pageHeight, margin, dataUrl, `${item.id} - Foto Barang ${i + 1} / ${images.length}`);
       }
+    }
+
+    if (!items.length) {
+      doc.addPage();
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.text("Belum ada barang tersimpan di induk ini.", margin, margin);
     }
 
     stampPdfCredit(doc, pageWidth, pageHeight);
