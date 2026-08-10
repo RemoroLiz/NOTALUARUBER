@@ -42,6 +42,9 @@
           <a href="customer.html" class="nav-link">
             <i class="fas fa-users"></i> Data Customer
           </a>
+          <a href="kalkulator.html" class="nav-link">
+            <i class="fas fa-calculator"></i> Kalkulator
+          </a>
         </nav>
       </header>
 
@@ -589,10 +592,17 @@
               </button>
               <button
                 type="button"
-                id="testPrintBtn"
+                id="testPrintCustomerBtn"
                 class="btn test-print-btn"
               >
-                <i class="fas fa-print"></i> Test Cetak
+                <i class="fas fa-receipt"></i> Test Cetak Customer
+              </button>
+              <button
+                type="button"
+                id="testPrintStoreBtn"
+                class="btn test-print-btn"
+              >
+                <i class="fas fa-store"></i> Test Cetak Toko
               </button>
             </div>
             </div>
@@ -632,15 +642,23 @@
             </div>
           </div>
 
-          <!-- PRINT BUTTON -->
+          <!-- PRINT BUTTON (BARU - dipisah customer & toko) -->
           <div class="preview-actions">
             <button
               type="button"
-              id="printPreviewBtn"
+              id="printPreviewCustomerBtn"
               class="btn btn-danger"
               disabled
             >
-              <i class="fas fa-print"></i> Cetak Sekarang
+              <i class="fas fa-receipt"></i> Cetak Struk Customer
+            </button>
+            <button
+              type="button"
+              id="printPreviewStoreBtn"
+              class="btn btn-danger"
+              disabled
+            >
+              <i class="fas fa-store"></i> Cetak Laporan Toko
             </button>
           </div>
         </section>
@@ -659,6 +677,7 @@
             >Google Spreadsheet</a
           >
         </p>
+        <p class="credit-line"><i class="fas fa-code"></i> Dibuat oleh Kevin Uber</p>
       </footer>
 
       <!-- LOADING OVERLAY -->
