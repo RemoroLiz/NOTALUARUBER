@@ -51,6 +51,20 @@ function formatRupiah(value) {
   return "Rp " + Math.round(num).toLocaleString("id-ID");
 }
 
+/**
+ * Format angka biasa (BUKAN mata uang) dengan separator ribuan
+ * bertitik ala Indonesia, dipakai untuk field seperti Cokim supaya
+ * tetap mudah dibaca kalau nilainya besar - terutama di struk
+ * thermal yang fontnya kecil. Nilai non-numerik (kosong, "-", teks)
+ * dikembalikan apa adanya.
+ */
+function formatNumberID(value) {
+  if (value === undefined || value === null || String(value).trim() === "") return "-";
+  const num = Number(value);
+  if (isNaN(num)) return String(value);
+  return num.toLocaleString("id-ID");
+}
+
 function floorToStep(value, step) {
   if (!isFinite(value)) return 0;
   return Math.floor(value / step) * step;
@@ -365,12 +379,14 @@ function updatePreview() {
   const v = getFormValues();
   const hasAny = Object.values(v).some((val) => val && String(val).trim() !== "");
   const previewContent = document.getElementById("previewContent");
-  const printBtn = document.getElementById("printPreviewBtn");
+  const printCustomerBtn = document.getElementById("printPreviewCustomerBtn");
+  const printStoreBtn = document.getElementById("printPreviewStoreBtn");
 
   if (!hasAny) {
     previewContent.innerHTML =
       '<p class="preview-placeholder">Form belum diisi. Data akan muncul di sini setelah diisi.</p>';
-    printBtn.disabled = true;
+    printCustomerBtn.disabled = true;
+    printStoreBtn.disabled = true;
     return;
   }
 
@@ -394,7 +410,8 @@ function updatePreview() {
     .join("");
 
   const requiredOk = document.getElementById("emasForm").checkValidity();
-  printBtn.disabled = !requiredOk;
+  printCustomerBtn.disabled = !requiredOk;
+  printStoreBtn.disabled = !requiredOk;
 }
 
 // ==============================
@@ -429,7 +446,7 @@ function buildStoreReceipt(id, v) {
   // dengan garis pemisah tersendiri.
   const identityFields = [
     ["Jenis", v.jenisBarang || "-"],
-    ["Cokim", v.cokimTerima || "-"],
+    ["Cokim", formatNumberID(v.cokimTerima)],
   ];
 
   const detailFields = [
@@ -448,7 +465,7 @@ function buildStoreReceipt(id, v) {
     ["Berat Terima", v.beratTerima ? `${v.beratTerima} g` : "-"],
     ["Kondisi", v.kondisiPerhiasan || "-"],
     ["Model", v.model || "-"],
-    ["Rate", v.rateTerima || "-"],
+    ["Rate", formatNumberID(v.rateTerima)],
     ["Harga/gram", formatRupiah(v.hargaPerGram)],
   ];
 
@@ -470,20 +487,8 @@ function buildStoreReceipt(id, v) {
       <hr />
       <div class="tr-total"><span>HARGA TERIMA</span><span>${formatRupiah(v.hargaTerima)}</span></div>
       <div class="tr-footer tr-footer-note">Sudah di uji, potong, amplas dan gosok</div>
+      <div class="tr-credit">by Kevin Uber</div>
     </div>`;
-}
-
-/**
- * Menggabungkan struk customer + laporan toko jadi SATU dokumen
- * print (dipisahkan jarak beberapa cm + garis putus "gunting di
- * sini"), supaya hanya 1x panggilan print / 1 print job.
- */
-function buildCombinedReceipt(id, v) {
-  return `
-    ${buildCustomerReceipt(id, v)}
-    <div class="tr-gap"><span>&#9986; gunting di sini &#9986;</span></div>
-    ${buildStoreReceipt(id, v)}
-  `;
 }
 
 /**
@@ -537,6 +542,7 @@ const THERMAL_PRINT_STYLE = `
   .thermal-receipt .tr-row .v { font-weight: 700; text-align: right; word-break: break-word; }
   .thermal-receipt .tr-total { font-size: 9.5pt; font-weight: 700; display: flex; justify-content: space-between; margin-top: 1.5mm; }
   .thermal-receipt .tr-footer { text-align: center; font-size: 7.5pt; margin-top: 1.8mm; }
+  .thermal-receipt .tr-credit { text-align: center; font-size: 6pt; color: #888; margin-top: 1.5mm; }
   .tr-gap { height: 12mm; display: flex; align-items: center; justify-content: center; page-break-inside: avoid; }
   .tr-gap span { font-size: 7pt; letter-spacing: 1px; color: #444; border-top: 0.3mm dashed #999; border-bottom: 0.3mm dashed #999; padding: 1.5mm 0; width: 100%; text-align: center; }
 `;
@@ -597,18 +603,51 @@ function printThermalDocument(bodyHtml) {
   });
 }
 
-async function printReceipt(id, v) {
-  await printThermalDocument(buildCombinedReceipt(id, v));
+/**
+ * CETAK TERPISAH (BARU) - struk customer dan laporan toko sekarang
+ * masing-masing 1 print job SENDIRI (bukan lagi digabung dalam 1
+ * dokumen). Ini membuat keduanya bisa dicetak ulang secara
+ * independen (mis. struk customer hilang/rusak tapi laporan toko
+ * tidak perlu dicetak ulang), dan menghindari pemotongan kertas yang
+ * salah tempat di sebagian printer thermal.
+ */
+async function printCustomerReceipt(id, v) {
+  await printThermalDocument(buildCustomerReceipt(id, v));
 }
 
-function testPrint() {
+async function printStoreReceipt(id, v) {
+  await printThermalDocument(buildStoreReceipt(id, v));
+}
+
+/**
+ * Mencetak KEDUANYA secara berurutan (dipakai pada alur otomatis
+ * setelah simpan data) - tetap 2 print job terpisah, hanya
+ * dipanggil berurutan supaya alur "Simpan & Cetak" tidak berubah
+ * dari sisi pengguna.
+ */
+async function printReceipt(id, v) {
+  await printCustomerReceipt(id, v);
+  await printStoreReceipt(id, v);
+}
+
+function testPrintCustomer() {
   const v = getFormValues();
   const hasAny = Object.values(v).some((val) => val && String(val).trim() !== "");
   if (!hasAny) {
     showStatus("Isi form terlebih dahulu sebelum test cetak.", false);
     return;
   }
-  printReceipt("TEST-0000", v);
+  printCustomerReceipt("TEST-0000", v);
+}
+
+function testPrintStore() {
+  const v = getFormValues();
+  const hasAny = Object.values(v).some((val) => val && String(val).trim() !== "");
+  if (!hasAny) {
+    showStatus("Isi form terlebih dahulu sebelum test cetak.", false);
+    return;
+  }
+  printStoreReceipt("TEST-0000", v);
 }
 
 // ==============================
@@ -697,7 +736,8 @@ function resetForm() {
 
   document.getElementById("previewContent").innerHTML =
     '<p class="preview-placeholder">Form belum diisi. Data akan muncul di sini setelah diisi.</p>';
-  document.getElementById("printPreviewBtn").disabled = true;
+  document.getElementById("printPreviewCustomerBtn").disabled = true;
+  document.getElementById("printPreviewStoreBtn").disabled = true;
 }
 
 // ==============================
@@ -741,11 +781,16 @@ document.addEventListener("DOMContentLoaded", () => {
     showStatus("Form telah direset. Silakan isi data baru.", true, 3000);
   });
 
-  document.getElementById("testPrintBtn").addEventListener("click", testPrint);
+  document.getElementById("testPrintCustomerBtn").addEventListener("click", testPrintCustomer);
+  document.getElementById("testPrintStoreBtn").addEventListener("click", testPrintStore);
 
-  document.getElementById("printPreviewBtn").addEventListener("click", () => {
+  document.getElementById("printPreviewCustomerBtn").addEventListener("click", () => {
     if (!currentReceiptData) return;
-    printReceipt(currentReceiptData.id, currentReceiptData.values);
+    printCustomerReceipt(currentReceiptData.id, currentReceiptData.values);
+  });
+  document.getElementById("printPreviewStoreBtn").addEventListener("click", () => {
+    if (!currentReceiptData) return;
+    printStoreReceipt(currentReceiptData.id, currentReceiptData.values);
   });
 
   document.getElementById("emasForm").addEventListener("submit", async (e) => {
