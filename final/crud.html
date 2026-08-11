@@ -2,6 +2,8 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <!-- PROTEKSI DASAR: klik-kanan, shortcut DevTools, anti-debugger loop -->
+    <script src="protect.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CRUD DATA EMAS UBER</title>
     <link
@@ -210,7 +212,9 @@
               <label><i class="fas fa-camera"></i> Tambah Foto Barang</label>
               <p class="edit-image-hint">
                 Foto lama tetap tersimpan dan tidak akan tertimpa. Foto baru
-                mengisi slot yang masih kosong.
+                mengisi slot yang masih kosong. Bisa klik tombol di bawah
+                atau langsung seret &amp; lepas (drag &amp; drop) foto ke
+                kotak ini.
               </p>
               <div class="image-upload-container">
                 <div class="image-preview-container" id="editImagePreviewContainer"></div>
