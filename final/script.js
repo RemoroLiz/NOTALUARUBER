@@ -250,6 +250,40 @@ function renderImagePreviews() {
     .join("");
 }
 
+/**
+ * (BARU) Menambahkan dukungan drag & drop file ke sebuah elemen
+ * pembungkus upload. zoneEl diberi class "drag-over" saat file
+ * diseret di atasnya (styling ada di style.css) untuk feedback
+ * visual. onFiles dipanggil dengan FileList yang di-drop - bentuknya
+ * sama seperti event "change" pada <input type="file"> sehingga bisa
+ * langsung dioper ke handler yang sudah ada tanpa perlu diubah.
+ */
+function enableDragDrop(zoneEl, onFiles) {
+  if (!zoneEl) return;
+  ["dragenter", "dragover"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zoneEl.classList.add("drag-over");
+    });
+  });
+  ["dragleave", "dragend"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (evt === "dragleave" && zoneEl.contains(e.relatedTarget)) return;
+      zoneEl.classList.remove("drag-over");
+    });
+  });
+  zoneEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    zoneEl.classList.remove("drag-over");
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) onFiles(files);
+  });
+}
+
 // ==============================
 // NOMOR INDUK TRANSAKSI (BARU)
 // ==============================
@@ -422,7 +456,7 @@ function buildCustomerReceipt(id, v) {
     <div class="thermal-receipt">
       <div class="tr-title">TOKO MAS PANTES UBER</div>
       <div class="tr-address">Jl. A.H. Nasution No.219, Pasirjati, Kecamatan Ujung Berung, Bandung</div>
-      <div class="tr-sub">${id} &middot; ${new Date().toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+      <div class="tr-sub">${id} &middot; ${new Date().toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })}</div>
       <hr />
       <div class="tr-row"><span class="k">Kadar Fisik</span><span class="v">${v.kadarFisik || "-"}</span></div>
       <div class="tr-row"><span class="k">Kadar Mesin</span><span class="v">${v.kadarMesin || "-"}</span></div>
@@ -479,7 +513,7 @@ function buildStoreReceipt(id, v) {
   return `
     <div class="thermal-receipt">
       <div class="tr-title">LAPORAN NOTA LUAR UBER</div>
-      <div class="tr-sub">${id} &middot; ${new Date().toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+      <div class="tr-sub">${id} &middot; ${new Date().toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })}</div>
       <hr />
       ${renderRows(identityFields)}
       <hr />
@@ -753,6 +787,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("imageUpload").addEventListener("change", (e) => {
     handleImageSelection(e.target.files);
     e.target.value = ""; // izinkan memilih file yang sama lagi
+  });
+
+  // (BARU) Drag & drop foto langsung ke area upload
+  enableDragDrop(document.getElementById("imageUpload").closest(".image-upload-container"), (files) => {
+    handleImageSelection(files);
   });
 
   const calculationInputs = [
