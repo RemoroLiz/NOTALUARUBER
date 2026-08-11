@@ -78,12 +78,53 @@ function formatDate(iso) {
   if (!iso) return "-";
   const d = new Date(iso);
   if (isNaN(d)) return "-";
+  // PENTING: timeZone dikunci ke "Asia/Jakarta" secara eksplisit -
+  // BUG SEBELUMNYA: tanpa ini, browser memakai timezone perangkat
+  // masing-masing (bisa berbeda-beda tiap laptop/HP), sehingga
+  // tanggal & jam yang tampil di halaman Data Management bisa maju/
+  // mundur satu hari dari tanggal transaksi sebenarnya (terutama
+  // transaksi larut malam). Dengan timeZone dikunci, tampilan selalu
+  // konsisten sesuai waktu Indonesia (WIB) berapa pun timezone
+  // perangkat yang membuka halaman ini.
   return d.toLocaleString("id-ID", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+  });
+}
+
+/**
+ * (BARU) Menambahkan dukungan drag & drop file ke sebuah elemen
+ * pembungkus upload. Lihat catatan lengkap pada fungsi yang sama di
+ * script.js - perilakunya identik, hanya diduplikasi di sini karena
+ * tiap halaman memakai file JS berdiri sendiri (tanpa modul bersama).
+ */
+function enableDragDrop(zoneEl, onFiles) {
+  if (!zoneEl) return;
+  ["dragenter", "dragover"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zoneEl.classList.add("drag-over");
+    });
+  });
+  ["dragleave", "dragend"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (evt === "dragleave" && zoneEl.contains(e.relatedTarget)) return;
+      zoneEl.classList.remove("drag-over");
+    });
+  });
+  zoneEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    zoneEl.classList.remove("drag-over");
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) onFiles(files);
   });
 }
 
@@ -888,6 +929,7 @@ async function generatePdf(id) {
           day: "2-digit",
           month: "long",
           year: "numeric",
+          timeZone: "Asia/Jakarta",
         });
 
     doc.setFont("helvetica", "bold");
@@ -1161,6 +1203,11 @@ document.getElementById("saveEdit").addEventListener("click", saveEdit);
 document.getElementById("editImageUpload").addEventListener("change", (e) => {
   handleEditImageSelection(e.target.files);
   e.target.value = "";
+});
+
+// (BARU) Drag & drop foto tambahan langsung ke area upload di modal edit
+enableDragDrop(document.getElementById("editImageUpload").closest(".image-upload-container"), (files) => {
+  handleEditImageSelection(files);
 });
 
 document.getElementById("printCustomerFromDetail").addEventListener("click", () => {
