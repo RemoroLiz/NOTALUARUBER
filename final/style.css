@@ -565,6 +565,16 @@ header h1 i {
   border-radius: var(--radius);
   padding: 16px;
   background: #fbfaf7;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+/* (BARU) Feedback visual saat file diseret (drag & drop) di atas area
+   upload - dipasang/dilepas otomatis oleh enableDragDrop() di JS. */
+.image-upload-container.drag-over,
+.induk-doc-slot.drag-over {
+  border-color: var(--gold-dark, #d4af37);
+  background: #fff8e6;
+  box-shadow: inset 0 0 0 1px var(--gold-dark, #d4af37);
 }
 
 .image-preview-container {
@@ -1186,6 +1196,7 @@ footer p { margin-bottom: 4px; }
   padding: 10px;
   text-align: center;
   background: var(--bg);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .induk-doc-slot.has-photo { border-style: solid; border-color: var(--success); }
@@ -1267,3 +1278,33 @@ footer p { margin-bottom: 4px; }
   padding: 10px 14px;
   border-radius: 8px;
 }
+
+/* ============================================================
+   (OPSIONAL, TIDAK AKTIF SECARA DEFAULT) - NONAKTIFKAN SELEKSI TEKS
+   ============================================================
+   Blok ini SENGAJA di-comment (tidak aktif) supaya tidak diam-diam
+   mengubah perilaku situs. Hapus tanda komentar /* dan * / di
+   sekeliling blok ini kalau memang ingin mengaktifkannya.
+
+   PENTING: textarea, input, dan elemen ber-class ".selectable"
+   SENGAJA dikecualikan (biarkan bisa diseleksi) - kalau tidak,
+   fitur "Salin ke Clipboard" pada Laporan WA (induk.html) akan
+   RUSAK, karena fallback copy-nya butuh textarea.select() untuk
+   bisa jalan di browser yang tidak mendukung Clipboard API modern.
+
+.no-select-zone,
+.no-select-zone * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.no-select-zone input,
+.no-select-zone textarea,
+.no-select-zone .selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+*/
