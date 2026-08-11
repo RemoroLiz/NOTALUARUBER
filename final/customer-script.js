@@ -36,6 +36,38 @@ function updateLoadingMessage(message) {
   if (el) el.textContent = message;
 }
 
+/**
+ * (BARU) Menambahkan dukungan drag & drop file ke sebuah elemen
+ * pembungkus upload. Lihat catatan lengkap pada fungsi yang sama di
+ * script.js - perilakunya identik, hanya diduplikasi di sini karena
+ * tiap halaman memakai file JS berdiri sendiri (tanpa modul bersama).
+ */
+function enableDragDrop(zoneEl, onFiles) {
+  if (!zoneEl) return;
+  ["dragenter", "dragover"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zoneEl.classList.add("drag-over");
+    });
+  });
+  ["dragleave", "dragend"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (evt === "dragleave" && zoneEl.contains(e.relatedTarget)) return;
+      zoneEl.classList.remove("drag-over");
+    });
+  });
+  zoneEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    zoneEl.classList.remove("drag-over");
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) onFiles(files);
+  });
+}
+
 function getDriveThumbnailUrl(driveUrl) {
   if (!driveUrl) return null;
   try {
@@ -405,6 +437,11 @@ document.getElementById("saveEditCustomer").addEventListener("click", saveEditCu
 document.getElementById("editCustomerImageUpload").addEventListener("change", (e) => {
   handleEditCustomerImageSelection(e.target.files);
   e.target.value = "";
+});
+
+// (BARU) Drag & drop foto customer langsung ke area upload
+enableDragDrop(document.getElementById("editCustomerImageUpload").closest(".image-upload-container"), (files) => {
+  handleEditCustomerImageSelection(files);
 });
 
 // ==============================
