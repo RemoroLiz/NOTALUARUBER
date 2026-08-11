@@ -69,16 +69,51 @@ function getDriveThumbnailUrl(driveUrl) {
   }
 }
 
+/**
+ * (BARU) Menambahkan dukungan drag & drop file ke sebuah elemen
+ * pembungkus upload. Lihat catatan lengkap pada fungsi yang sama di
+ * script.js - perilakunya identik, hanya diduplikasi di sini karena
+ * tiap halaman memakai file JS berdiri sendiri (tanpa modul bersama).
+ */
+function enableDragDrop(zoneEl, onFiles) {
+  if (!zoneEl) return;
+  ["dragenter", "dragover"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zoneEl.classList.add("drag-over");
+    });
+  });
+  ["dragleave", "dragend"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (evt === "dragleave" && zoneEl.contains(e.relatedTarget)) return;
+      zoneEl.classList.remove("drag-over");
+    });
+  });
+  zoneEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    zoneEl.classList.remove("drag-over");
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) onFiles(files);
+  });
+}
+
 function formatDate(iso) {
   if (!iso) return "-";
   const d = new Date(iso);
   if (isNaN(d.getTime())) return "-";
+  // timeZone dikunci ke Asia/Jakarta - lihat catatan di crud-script.js
+  // formatDate() untuk penjelasan lengkap bug tanggal yang diperbaiki.
   return d.toLocaleString("id-ID", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Jakarta",
   });
 }
 
@@ -797,6 +832,13 @@ document.getElementById("pdfFromIndukDetail").addEventListener("click", () => {
     const file = e.target.files && e.target.files[0];
     handleIndukDocFileSelect(docType, file);
     e.target.value = "";
+  });
+
+  // (BARU) Drag & drop foto langsung ke kotak slot dokumen (MOU/KTP/
+  // Foto Customer) - hanya file pertama yang dipakai per slot karena
+  // tiap slot memang untuk satu foto saja.
+  enableDragDrop(document.getElementById(`indukDocSlot-${docType}`), (files) => {
+    handleIndukDocFileSelect(docType, files[0]);
   });
 });
 document.getElementById("saveIndukDocs").addEventListener("click", saveIndukDocs);
