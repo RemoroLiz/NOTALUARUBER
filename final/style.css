@@ -1,1310 +1,499 @@
-/* ============================================================
-   UBER EMAS - SHARED THEME
-   Dipakai oleh index.html (Form Input) dan crud.html (Data
-   Management) supaya tampilan konsisten di seluruh sistem.
-   ============================================================ */
-
-:root {
-  --gold: #d4af37;
-  --gold-light: #f4d35e;
-  --gold-dark: #a8862b;
-  --navy: #1a1a2e;
-  --navy-light: #24243e;
-  --bg: #f5f3ee;
-  --card-bg: #ffffff;
-  --text: #1f1f2b;
-  --text-muted: #6b6b7b;
-  --border: #e4e0d6;
-  --success: #2e7d32;
-  --success-bg: #e8f5e9;
-  --error: #c62828;
-  --error-bg: #fdecea;
-  --radius: 12px;
-  --shadow: 0 2px 10px rgba(26, 26, 46, 0.08);
-  --shadow-lg: 0 12px 32px rgba(26, 26, 46, 0.18);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  background: linear-gradient(180deg, var(--bg) 0%, #efece3 100%);
-  color: var(--text);
-  line-height: 1.5;
-  min-height: 100vh;
-}
-
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* ---------------- HEADER ---------------- */
-header {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-  color: #fff;
-  border-radius: var(--radius);
-  padding: 28px 32px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-}
-
-header h1 {
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--gold-light);
-  letter-spacing: 0.5px;
-}
-
-header h1 i {
-  color: var(--gold);
-  margin-right: 10px;
-}
-
-.subtitle {
-  color: #cfd0e0;
-  margin-top: 6px;
-  font-size: 0.95rem;
-}
-
-.connection-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.85rem;
-}
-
-.status-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.25);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.main-nav {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 18px;
-  flex-wrap: wrap;
-}
-
-.nav-link {
-  color: #dcdce8;
-  text-decoration: none;
-  padding: 9px 20px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: all 0.2s ease;
-}
-
-.nav-link i {
-  margin-right: 6px;
-}
-
-.nav-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.active {
-  background: var(--gold);
-  color: var(--navy);
-  border-color: var(--gold);
-}
-
-/* ---------------- INFO / STATUS ---------------- */
-.info-box {
-  background: #fff8e1;
-  border: 1px solid #f1e0a3;
-  border-left: 4px solid var(--gold);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  margin-bottom: 18px;
-  font-size: 0.9rem;
-  color: #5c4a1a;
-}
-
-.info-box i {
-  color: var(--gold-dark);
-  margin-right: 8px;
-}
-
-.status-indicator {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 18px;
-  border-radius: var(--radius);
-  margin-bottom: 18px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  animation: slideDown 0.25s ease;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.status-success {
-  background: var(--success-bg);
-  color: var(--success);
-  border: 1px solid #b6dfb8;
-}
-
-.status-error {
-  background: var(--error-bg);
-  color: var(--error);
-  border: 1px solid #f1b4ae;
-}
-
-/* ---------------- BUTTONS ---------------- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 22px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
-}
-
-.btn:active { transform: scale(0.97); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-  color: var(--navy);
-}
-.btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(212, 175, 55, 0.4); }
-
-.btn-secondary {
-  background: #eceae3;
-  color: var(--text);
-}
-.btn-secondary:hover:not(:disabled) { background: #e0ddd2; }
-
-.btn-danger {
-  background: linear-gradient(135deg, #c62828 0%, #8e1c1c 100%);
-  color: #fff;
-}
-.btn-danger:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(198, 40, 40, 0.35); }
-
-.btn-block { width: 100%; justify-content: center; margin-top: 6px; }
-.btn-sm { padding: 7px 14px; font-size: 0.8rem; }
-
-.test-print-btn {
-  background: var(--navy);
-  color: #fff;
-}
-.test-print-btn:hover { box-shadow: 0 4px 14px rgba(26, 26, 46, 0.35); }
-
-.button-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 22px;
-}
-
-/* ---------------- FORM ---------------- */
-.main-content {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
-.form-section, .preview-section {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: 26px;
-  box-shadow: var(--shadow);
-}
-
-.section-title {
-  font-size: 1.15rem;
-  color: var(--navy);
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--gold);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 6px;
-}
-
-.form-group label i { color: var(--gold-dark); margin-right: 6px; width: 14px; }
-
-.form-group label.required::after {
-  content: " *";
-  color: var(--error);
-}
-
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-with-icon > i {
-  position: absolute;
-  left: 13px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.input-with-icon input,
-.input-with-icon select {
-  width: 100%;
-  padding: 11px 12px 11px 38px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.92rem;
-  background: #fbfaf7;
-  color: var(--text);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.input-with-icon input:focus,
-.input-with-icon select:focus {
-  outline: none;
-  border-color: var(--gold);
-  background: #fff;
-}
-
-.input-with-icon input[readonly] {
-  background: #f0efe9;
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-.tooltip {
-  display: block;
-  margin-top: 5px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  position: relative;
-  cursor: help;
-}
-
-.tooltip-text {
-  display: none;
-  position: absolute;
-  bottom: 130%;
-  left: 0;
-  background: var(--navy);
-  color: #fff;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  width: 220px;
-  z-index: 10;
-  line-height: 1.4;
-}
-
-.tooltip:hover .tooltip-text { display: block; }
-
-/* ---------------- IMAGE UPLOAD ---------------- */
-.customer-id-field { margin-top: 12px; }
-
-.customer-id-field .readonly-field {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  background: #f4f3ee;
-  color: var(--navy);
-  cursor: not-allowed;
-}
-
-.customer-id-field .readonly-field::placeholder {
-  font-weight: 400;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-.customer-id-field .readonly-field:not(:placeholder-shown) {
-  background: var(--success-bg);
-  border-color: var(--success);
-  color: var(--success);
-}
-
-/* ============================================================
-   ALUR TRANSAKSI MULTI-BARANG (BARU)
-   ============================================================ */
-.step-section {
-  background: #faf9f5;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 18px;
-}
-
-.step-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.step-title i { color: var(--gold-dark); }
-
-.induk-banner {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  background: var(--success-bg);
-  border: 1.5px solid var(--success);
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
-}
-
-.induk-banner.show { display: flex; }
-
-.induk-banner-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.85rem;
-  color: var(--navy);
-}
-
-.induk-banner-info strong { color: var(--success); }
-
-.induk-items-box {
-  display: none;
-  background: #fff;
-  border: 1.5px dashed var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
-}
-
-.induk-items-box.show { display: block; }
-
-.induk-items-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 10px;
-}
-
-.induk-items-title i { color: var(--gold-dark); margin-right: 6px; }
-
-.induk-items-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.induk-item-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 0.78rem;
-}
-
-.induk-item-chip i { color: var(--success); }
-.induk-item-chip .chip-jenis { color: var(--text-muted); }
-
-.induk-detail-items {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--border);
-}
-
-.induk-item-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-}
-
-.induk-item-row .chip-jenis { color: var(--text-muted); font-size: 0.8rem; }
-
-#itemFormSection { display: none; }
-#itemFormSection.show { display: block; }
-
-.customer-section { position: relative; }
-
-.customer-search-wrap { position: relative; }
-
-.customer-suggestions {
-  display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: #fff;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 20;
-}
-
-.customer-suggestions.show { display: block; }
-
-.customer-suggestion-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.customer-suggestion-item:last-child { border-bottom: none; }
-.customer-suggestion-item:hover { background: var(--success-bg); }
-.customer-suggestion-item i { color: var(--gold-dark); margin-right: 6px; }
-
-.cust-id-tag {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  background: var(--border);
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-.customer-status {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  border-radius: 6px;
-  min-height: 0;
-}
-
-.customer-status:empty { padding: 0; margin-top: 0; }
-.customer-status.existing { background: var(--success-bg); color: var(--success); }
-.customer-status.new { background: #fff8e1; color: var(--gold-dark); }
-
-.customer-photo-section {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--border);
-}
-
-.customer-photo-section > label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  font-size: 0.88rem;
-  color: var(--navy);
-}
-
-.customer-photo-section > label i { color: var(--gold-dark); margin-right: 6px; }
-
-.edit-image-hint {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.image-upload-container {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  background: #fbfaf7;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-/* (BARU) Feedback visual saat file diseret (drag & drop) di atas area
-   upload - dipasang/dilepas otomatis oleh enableDragDrop() di JS. */
-.image-upload-container.drag-over,
-.induk-doc-slot.drag-over {
-  border-color: var(--gold-dark, #d4af37);
-  background: #fff8e6;
-  box-shadow: inset 0 0 0 1px var(--gold-dark, #d4af37);
-}
-
-.image-preview-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.image-preview-item {
-  position: relative;
-  width: 84px;
-  height: 84px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.image-preview-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.image-preview-item .remove-image {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: rgba(198, 40, 40, 0.9);
-  color: #fff;
-  border: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  font-size: 0.7rem;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.image-preview-item .image-size-tag {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(26, 26, 46, 0.75);
-  color: #fff;
-  font-size: 0.6rem;
-  text-align: center;
-  padding: 2px 0;
-}
-
-.customer-table-photos {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.customer-table-thumb {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-}
-
-.edit-customer-existing-photos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.edit-customer-existing-item.marked-for-removal {
-  opacity: 0.4;
-  border: 2px solid var(--error);
-}
-
-.edit-customer-existing-item.marked-for-removal::after {
-  content: "Akan dihapus";
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(198, 40, 40, 0.55);
-  color: #fff;
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-align: center;
-  padding: 4px;
-}
-
-.btn-edit-customer-inline {
-  border: none;
-  background: var(--border);
-  color: var(--navy);
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 0.65rem;
-  cursor: pointer;
-  margin-left: 6px;
-  vertical-align: middle;
-}
-
-.btn-edit-customer-inline:hover { background: var(--gold); color: #fff; }
-
-.upload-controls {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.upload-btn {
-  background: var(--navy);
-  color: #fff;
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.upload-btn:hover { background: var(--navy-light); }
-
-.upload-info { display: flex; flex-direction: column; font-size: 0.78rem; color: var(--text-muted); }
-.max-info { font-size: 0.7rem; }
-
-.image-uploaded-filenames {
-  margin-top: 10px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* ---------------- PREVIEW / STATS ---------------- */
-.preview-box {
-  background: #fbfaf7;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  min-height: 160px;
-  font-size: 0.85rem;
-  margin-bottom: 18px;
-}
-
-.preview-placeholder {
-  color: var(--text-muted);
-  text-align: center;
-  padding: 30px 0;
-}
-
-.preview-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px dashed var(--border);
-}
-
-.preview-row:last-child { border-bottom: none; }
-.preview-row .label { color: var(--text-muted); }
-.preview-row .value { font-weight: 600; }
-
-.stats-box {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-  border-radius: var(--radius);
-  padding: 18px;
-  color: #fff;
-  margin-bottom: 18px;
-}
-
-.stats-title {
-  font-size: 0.9rem;
-  color: var(--gold-light);
-  margin-bottom: 12px;
-  font-weight: 600;
-}
-
-.stats-content {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  text-align: center;
-}
-
-.stat-value { font-size: 1.3rem; font-weight: 700; color: var(--gold); }
-.stat-label { font-size: 0.7rem; color: #cfd0e0; margin-top: 4px; }
-
-.preview-actions { display: flex; }
-.preview-actions .btn { width: 100%; justify-content: center; }
-
-/* ---------------- FILTER / SEARCH (CRUD) ---------------- */
-.filter-section {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: 18px 22px;
-  box-shadow: var(--shadow);
-  margin-bottom: 18px;
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.search-box {
-  position: relative;
-  flex: 1 1 260px;
-}
-
-.search-box i {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-}
-
-.search-box input {
-  width: 100%;
-  padding: 10px 12px 10px 38px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.88rem;
-}
-
-.search-box input:focus { outline: none; border-color: var(--gold); }
-
-.filter-controls { display: flex; gap: 10px; flex-wrap: wrap; }
-
-.filter-select {
-  padding: 10px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  background: #fbfaf7;
-}
-
-/* ---------------- TABLE ---------------- */
-.table-container {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: 22px;
-  box-shadow: var(--shadow);
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.table-header h2 {
-  font-size: 1.1rem;
-  color: var(--navy);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.table-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.table-info { display: flex; gap: 14px; font-size: 0.8rem; color: var(--text-muted); }
-
-.pagination-controls { display: flex; gap: 8px; }
-
-.btn-pagination {
-  padding: 8px 14px;
-  border: 1.5px solid var(--border);
-  background: #fff;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-pagination:hover:not(:disabled) { border-color: var(--gold); color: var(--gold-dark); }
-.btn-pagination:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.table-responsive { overflow-x: auto; }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-  min-width: 900px;
-}
-
-thead th {
-  background: var(--navy);
-  color: #fff;
-  padding: 12px 10px;
-  text-align: left;
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-}
-
-thead th:first-child { border-radius: 8px 0 0 0; }
-thead th:last-child { border-radius: 0 8px 0 0; }
-
-tbody td {
-  padding: 10px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-
-tbody tr:hover { background: #fbf7ea; }
-
-.badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.badge-success { background: var(--success-bg); color: var(--success); }
-.badge-warning { background: #fff3cd; color: #916600; }
-
-.action-buttons { display: flex; gap: 6px; }
-
-.action-menu-wrap { position: relative; display: inline-block; }
-
-.btn-action-toggle { background: var(--border); color: var(--navy); }
-.btn-action-toggle:hover { background: var(--gold); color: #fff; }
-
-.action-dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 40;
-  min-width: 170px;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-  padding: 4px 0;
-}
-
-.action-dropdown.show { display: block; }
-
-.action-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 16px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.82rem;
-  color: var(--text);
-}
-
-.action-dropdown-item:hover { background: var(--bg); }
-.action-dropdown-item i { width: 14px; color: var(--gold-dark); }
-.action-dropdown-item.btn-delete i { color: var(--error); }
-.action-dropdown-item.btn-delete:hover { background: var(--error-bg); color: var(--error); }
-
-.btn-icon {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.15s ease;
-}
-
-.btn-icon:hover { opacity: 0.8; }
-.btn-view { background: #e3f2fd; color: #1565c0; }
-.btn-edit { background: #fff3cd; color: #916600; }
-.btn-print { background: #ede7f6; color: #5e35b1; }
-.btn-pdf { background: #ffebee; color: #c62828; }
-.btn-wa { background: #e7f9ef; color: #128c4a; }
-.btn-wa:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(18, 140, 74, 0.3); }
-
-.wa-report-textarea {
-  width: 100%;
-  min-height: 420px;
-  padding: 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-family: "Consolas", "Courier New", monospace;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  white-space: pre;
-  resize: vertical;
-  background: #fafafa;
-  color: var(--text);
-}
-.btn-delete { background: var(--error-bg); color: var(--error); }
-
-.customer-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
-  color: var(--navy);
-}
-
-.customer-tag i { color: var(--gold-dark); }
-
-.customer-tag .cust-id-tag {
-  font-size: 0.68rem;
-}
-
-.loading-data, .no-data-message {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  padding: 50px 0;
-  color: var(--text-muted);
-}
-
-.loading-data.show, .no-data-message.show { display: flex; }
-
-.no-data-message i { font-size: 2.4rem; margin-bottom: 12px; color: var(--border); }
-
-.spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid var(--border);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 10px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ---------------- MODAL ---------------- */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(26, 26, 46, 0.6);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modal.show { display: flex; }
-
-.modal-content {
-  background: #fff;
-  border-radius: var(--radius);
-  max-width: 720px;
-  width: 100%;
-  max-height: 88vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-lg);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
-}
-
-.modal-header h3 { color: var(--navy); font-size: 1.05rem; }
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: var(--text-muted);
-  line-height: 1;
-}
-
-.modal-body { padding: 22px 24px; overflow-y: auto; }
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.detail-grid,
-#detailContent {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.detail-item.full-width { grid-column: 1 / -1; }
-.detail-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
-.detail-label i { margin-right: 5px; color: var(--gold-dark); }
-.detail-value { font-weight: 600; font-size: 0.9rem; }
-
-.detail-images { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-.detail-images img {
-  width: 90px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-}
-
-/* Form edit di modal CRUD - 2 kolom biar tidak memanjang ke bawah. */
-#editForm {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 16px;
-}
-
-#editForm .form-group {
-  margin-bottom: 0;
-}
-
-/* ---------------- LOADING OVERLAY ---------------- */
-.loading {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(26, 26, 46, 0.72);
-  z-index: 2000;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  text-align: center;
-}
-
-.loading.show { display: flex; }
-.loading .spinner { border-color: rgba(255, 255, 255, 0.2); border-top-color: var(--gold); width: 46px; height: 46px; }
-.loading h3 { margin-top: 16px; color: var(--gold-light); }
-.loading p { margin-top: 6px; font-size: 0.85rem; color: #cfd0e0; }
-
-/* ---------------- FOOTER ---------------- */
-footer {
-  text-align: center;
-  padding: 26px 10px;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-footer a { color: var(--gold-dark); text-decoration: none; font-weight: 600; }
-footer p { margin-bottom: 4px; }
-
-/* ---------------- RESPONSIVE ---------------- */
-@media (max-width: 980px) {
-  .main-content { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 640px) {
-  .container { padding: 12px; }
-  header { padding: 20px; }
-  header h1 { font-size: 1.4rem; }
-  .form-row { grid-template-columns: 1fr; }
-  .stats-content { grid-template-columns: 1fr 1fr; }
-  .table-header { flex-direction: column; align-items: flex-start; }
-  .detail-grid { grid-template-columns: 1fr; }
-  .filter-controls { width: 100%; }
-  .filter-select { flex: 1; }
-}
-
-
-/* ============================================================
-   PRINT - STRUK THERMAL (POS-58, kertas roll 58mm)
-   Cetak struk TIDAK LAGI memakai #printArea + @media print di sini.
-   Sekarang script.js / crud-script.js membuat iframe tersembunyi
-   berisi HTML + CSS-nya sendiri lalu mencetak dari iframe itu (lihat
-   fungsi printThermalDocument). Ini menghindari halaman admin ikut
-   tercetak/terlihat dobel di browser & driver printer yang berbeda-
-   beda perilakunya terhadap @media print.
-   ============================================================ */
-
-/* ============================================================
-   CREDIT LINE (BARU) - dipakai di footer semua halaman
-   ============================================================ */
-.credit-line {
-  margin-top: 6px;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  opacity: 0.85;
-}
-.credit-line i { color: var(--gold-dark); margin-right: 4px; }
-
-/* ============================================================
-   DOKUMEN INDUK (BARU) - upload foto MOU / KTP / Foto Customer
-   per Nomor Induk Transaksi, dipakai di modal Detail Induk
-   (induk.html).
-   ============================================================ */
-.induk-doc-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 14px;
-  margin: 12px 0 4px;
-}
-
-.induk-doc-slot {
-  border: 1.5px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 10px;
-  text-align: center;
-  background: var(--bg);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.induk-doc-slot.has-photo { border-style: solid; border-color: var(--success); }
-
-.induk-doc-slot-label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--navy);
-  margin-bottom: 8px;
-}
-.induk-doc-slot-label i { color: var(--gold-dark); margin-right: 5px; }
-
-.induk-doc-preview {
-  width: 100%;
-  height: 90px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-  cursor: pointer;
-}
-.induk-doc-preview img { width: 100%; height: 100%; object-fit: cover; }
-.induk-doc-preview-empty { font-size: 0.68rem; color: var(--text-muted); padding: 4px; }
-
-.upload-btn-sm {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  padding: 7px 10px;
-  border-radius: 8px;
-  background: var(--navy);
-  color: #fff;
-  cursor: pointer;
-  border: none;
-  width: 100%;
-  justify-content: center;
-}
-.upload-btn-sm:hover { background: var(--navy-light); }
-.induk-doc-status { font-size: 0.68rem; color: var(--text-muted); margin-top: 5px; }
-.induk-doc-status.pending { color: var(--gold-dark); font-weight: 600; }
-
-/* ============================================================
-   KALKULATOR HARGA EMAS (BARU) - kalkulator.html
-   ============================================================ */
-.calc-result-card {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  color: #fff;
-  box-shadow: var(--shadow-lg);
-  margin-top: 18px;
-}
-.calc-result-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 8px 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
-  font-size: 0.95rem;
-}
-.calc-result-row:last-child { border-bottom: none; }
-.calc-result-row .label { color: #cfd0e0; }
-.calc-result-row .value { font-weight: 700; }
-.calc-result-row.calc-total { padding-top: 14px; margin-top: 6px; border-top: 2px solid var(--gold); border-bottom: none; }
-.calc-result-row.calc-total .label { color: var(--gold-light); font-size: 1rem; font-weight: 700; }
-.calc-result-row.calc-total .value { color: var(--gold-light); font-size: 1.5rem; }
-
-.calc-note {
-  margin-top: 14px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  background: #fff8e1;
-  border-left: 4px solid var(--gold);
-  padding: 10px 14px;
-  border-radius: 8px;
-}
-
-/* ============================================================
-   (OPSIONAL, TIDAK AKTIF SECARA DEFAULT) - NONAKTIFKAN SELEKSI TEKS
-   ============================================================
-   Blok ini SENGAJA di-comment (tidak aktif) supaya tidak diam-diam
-   mengubah perilaku situs. Hapus tanda komentar /* dan * / di
-   sekeliling blok ini kalau memang ingin mengaktifkannya.
-
-   PENTING: textarea, input, dan elemen ber-class ".selectable"
-   SENGAJA dikecualikan (biarkan bisa diseleksi) - kalau tidak,
-   fitur "Salin ke Clipboard" pada Laporan WA (induk.html) akan
-   RUSAK, karena fallback copy-nya butuh textarea.select() untuk
-   bisa jalan di browser yang tidak mendukung Clipboard API modern.
-
-.no-select-zone,
-.no-select-zone * {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-.no-select-zone input,
-.no-select-zone textarea,
-.no-select-zone .selectable {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}
-*/
+// ==============================
+// KONFIGURASI
+// ==============================
+const CONFIG = {
+  // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx24SIxySt-uGMnkhMuS7SySaTFown7uQlRqZQTF0AgCTR9kQkVchRboibvRDDHfXv7/exec",
+  MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
+  IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
+  MAX_CUSTOMER_PHOTOS: 3,
+};
+
+// ==============================
+// STATE
+// ==============================
+let allCustomers = []; // [{ idCustomer, nama, noHp, foto1, foto2, foto3 }]
+let filteredCustomers = [];
+let currentEditCustomerId = null;
+let selectedEditCustomerImages = []; // foto baru yang akan ditambahkan
+let editCustomerRemoveSlots = []; // slot foto lama (1/2/3) yang ditandai untuk dihapus
+
+// ==============================
+// UTILITAS
+// ==============================
+function showStatus(message, isSuccess = true, duration = 5000) {
+  const statusIndicator = document.getElementById("statusIndicator");
+  const statusMessage = document.getElementById("statusMessage");
+  statusIndicator.className = `status-indicator ${isSuccess ? "status-success" : "status-error"}`;
+  statusMessage.innerHTML = `<i class="fas ${isSuccess ? "fa-check-circle" : "fa-exclamation-circle"}"></i> ${message}`;
+  statusIndicator.style.display = "flex";
+  clearTimeout(showStatus._t);
+  showStatus._t = setTimeout(() => (statusIndicator.style.display = "none"), duration);
+}
+
+function updateLoadingMessage(message) {
+  const el = document.getElementById("loadingMessage");
+  if (el) el.textContent = message;
+}
+
+/**
+ * (BARU) Menambahkan dukungan drag & drop file ke sebuah elemen
+ * pembungkus upload. Lihat catatan lengkap pada fungsi yang sama di
+ * script.js - perilakunya identik, hanya diduplikasi di sini karena
+ * tiap halaman memakai file JS berdiri sendiri (tanpa modul bersama).
+ */
+function enableDragDrop(zoneEl, onFiles) {
+  if (!zoneEl) return;
+  ["dragenter", "dragover"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zoneEl.classList.add("drag-over");
+    });
+  });
+  ["dragleave", "dragend"].forEach((evt) => {
+    zoneEl.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (evt === "dragleave" && zoneEl.contains(e.relatedTarget)) return;
+      zoneEl.classList.remove("drag-over");
+    });
+  });
+  zoneEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    zoneEl.classList.remove("drag-over");
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) onFiles(files);
+  });
+}
+
+function getDriveThumbnailUrl(driveUrl) {
+  if (!driveUrl) return null;
+  try {
+    const idMatch = driveUrl.match(/id=([^&]+)/) || driveUrl.match(/\/d\/([^/]+)/);
+    if (idMatch && idMatch[1]) {
+      return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w400`;
+    }
+    return driveUrl;
+  } catch (e) {
+    return driveUrl;
+  }
+}
+
+/**
+ * Sama seperti compressImage di script.js/crud-script.js - dipakai
+ * supaya foto customer yang ditambahkan lewat halaman ini juga
+ * dikompres sebelum dikirim.
+ */
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Gagal membaca file gambar"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("File bukan gambar yang valid"));
+      img.onload = () => {
+        let { width, height } = img;
+        const maxDim = CONFIG.MAX_IMAGE_DIMENSION;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", CONFIG.IMAGE_QUALITY);
+        const base64 = dataUrl.split(",")[1];
+        const sizeKb = Math.round((base64.length * 0.75) / 1024);
+
+        resolve({ dataUrl, base64, mimeType: "image/jpeg", sizeKb, fileName: file.name });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ==============================
+// API
+// ==============================
+async function apiGet(params) {
+  const url = new URL(CONFIG.WEB_APP_URL);
+  Object.entries(params).forEach(([k, v]) => v !== undefined && v !== "" && url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || "Gagal mengambil data");
+  return json;
+}
+
+async function apiPost(payload) {
+  const res = await fetch(CONFIG.WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || "Gagal memproses data");
+  return json;
+}
+
+// ==============================
+// MUAT & RENDER DATA
+// ==============================
+async function loadCustomers() {
+  const loadingEl = document.getElementById("loadingData");
+  const noDataEl = document.getElementById("noDataMessage");
+  const tableBody = document.getElementById("tableBody");
+
+  loadingEl.classList.add("show");
+  noDataEl.classList.remove("show");
+  tableBody.innerHTML = "";
+
+  try {
+    const result = await apiGet({ action: "customerlist" });
+    allCustomers = result.data || [];
+    applyFilter();
+    document.getElementById("connectionText").textContent = "Terhubung ke Spreadsheet";
+  } catch (err) {
+    showStatus(`Gagal memuat data customer: ${err.message}`, false, 7000);
+    document.getElementById("connectionText").textContent = "Mode Offline";
+  } finally {
+    loadingEl.classList.remove("show");
+  }
+}
+
+function findCustomerById(idCustomer) {
+  return allCustomers.find((c) => String(c.idCustomer) === String(idCustomer));
+}
+
+function applyFilter() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  filteredCustomers = !q
+    ? allCustomers.slice()
+    : allCustomers.filter(
+        (c) => String(c.nama).toLowerCase().includes(q) || String(c.noHp || "").toLowerCase().includes(q),
+      );
+  filteredCustomers.sort((a, b) => String(a.idCustomer).localeCompare(String(b.idCustomer)));
+  renderTable();
+}
+
+function renderTable() {
+  const tableBody = document.getElementById("tableBody");
+  const noDataEl = document.getElementById("noDataMessage");
+
+  document.getElementById("totalRecords").textContent = `Total: ${filteredCustomers.length} customer`;
+
+  if (!filteredCustomers.length) {
+    tableBody.innerHTML = "";
+    noDataEl.classList.add("show");
+    return;
+  }
+  noDataEl.classList.remove("show");
+
+  tableBody.innerHTML = filteredCustomers
+    .map((c, idx) => {
+      const photos = [c.foto1, c.foto2, c.foto3].filter(Boolean);
+      const photoCell = photos.length
+        ? photos
+            .map(
+              (url) =>
+                `<img src="${getDriveThumbnailUrl(url)}" alt="foto ${c.nama}" class="customer-table-thumb" onclick="window.open('${url}','_blank')" />`,
+            )
+            .join("")
+        : '<span class="cust-id-tag">Belum ada foto</span>';
+
+      return `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><strong>${c.idCustomer}</strong></td>
+          <td>${c.nama || "-"}</td>
+          <td>${c.noHp || "-"}</td>
+          <td><div class="customer-table-photos">${photoCell}</div></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon btn-edit" data-id="${c.idCustomer}" title="Edit"><i class="fas fa-edit"></i></button>
+              <button class="btn-icon btn-delete-customer" data-id="${c.idCustomer}" title="Hapus Customer"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>`;
+    })
+    .join("");
+
+  tableBody.querySelectorAll(".btn-edit").forEach((b) =>
+    b.addEventListener("click", () => openEditCustomerModal(b.dataset.id)),
+  );
+  tableBody.querySelectorAll(".btn-delete-customer").forEach((b) =>
+    b.addEventListener("click", () => deleteCustomer(b.dataset.id)),
+  );
+}
+
+/**
+ * (BARU) Hapus satu profil customer beserta foto-fotonya - PERMANEN,
+ * tidak bisa dibatalkan. Selalu meminta konfirmasi eksplisit dulu
+ * lewat window.confirm() sebelum memanggil server. Riwayat transaksi
+ * yang sudah tercatat atas nama customer ini TIDAK ikut terhapus.
+ */
+async function deleteCustomer(idCustomer) {
+  const customer = findCustomerById(idCustomer);
+  const namaTampil = customer ? `${customer.nama} (${idCustomer})` : idCustomer;
+
+  const confirmed = window.confirm(
+    `Apakah Anda yakin ingin menghapus data customer ${namaTampil}?\n\n` +
+      `Foto customer akan ikut terhapus permanen dari Drive. Riwayat transaksi yang sudah tercatat atas nama customer ini TIDAK akan ikut terhapus, tapi datanya tidak lagi terhubung ke profil customer manapun.`,
+  );
+  if (!confirmed) return;
+
+  document.getElementById("loadingOverlay").classList.add("show");
+  updateLoadingMessage(`Menghapus data customer ${namaTampil}...`);
+  try {
+    await apiPost({ action: "customerdelete", id: idCustomer });
+    showStatus(`Data customer ${namaTampil} berhasil dihapus.`, true);
+    await loadCustomers();
+  } catch (err) {
+    showStatus(`Gagal menghapus data customer: ${err.message}`, false, 7000);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("show");
+  }
+}
+
+// ==============================
+// EDIT CUSTOMER
+// ==============================
+function openEditCustomerModal(idCustomer) {
+  const customer = findCustomerById(idCustomer);
+  if (!customer) {
+    showStatus("Data customer tidak ditemukan.", false);
+    return;
+  }
+
+  currentEditCustomerId = idCustomer;
+  selectedEditCustomerImages = [];
+  editCustomerRemoveSlots = [];
+
+  document.getElementById("editCustomerName").value = customer.nama || "";
+  document.getElementById("editCustomerPhone").value = customer.noHp || "";
+  document.getElementById("editCustomerIdDisplay").value = customer.idCustomer;
+
+  renderEditCustomerExistingPhotos(customer);
+  renderEditCustomerImagePreviews();
+  document.getElementById("editCustomerImageUpload").value = "";
+  updateEditCustomerSlotInfo();
+
+  document.getElementById("editCustomerModal").classList.add("show");
+}
+
+function renderEditCustomerExistingPhotos(customer) {
+  const container = document.getElementById("editCustomerExistingPhotos");
+  if (!container) return;
+
+  const slots = [1, 2, 3].map((n) => ({ slot: n, url: customer[`foto${n}`] })).filter((s) => s.url);
+
+  if (!slots.length) {
+    container.innerHTML = '<p class="edit-image-hint">Belum ada foto tersimpan.</p>';
+    return;
+  }
+
+  container.innerHTML = slots
+    .map(
+      (s) => `
+      <div class="image-preview-item edit-customer-existing-item" data-slot="${s.slot}">
+        <img src="${getDriveThumbnailUrl(s.url)}" alt="foto customer ${s.slot}" />
+        <button type="button" class="remove-image remove-existing-customer-photo" data-slot="${s.slot}" title="Hapus foto ini">&times;</button>
+      </div>`,
+    )
+    .join("");
+
+  container.querySelectorAll(".remove-existing-customer-photo").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const slot = parseInt(btn.dataset.slot, 10);
+      const item = btn.closest(".edit-customer-existing-item");
+      if (editCustomerRemoveSlots.includes(slot)) {
+        editCustomerRemoveSlots = editCustomerRemoveSlots.filter((s) => s !== slot);
+        item.classList.remove("marked-for-removal");
+      } else {
+        editCustomerRemoveSlots.push(slot);
+        item.classList.add("marked-for-removal");
+      }
+      updateEditCustomerSlotInfo();
+    });
+  });
+}
+
+function updateEditCustomerSlotInfo() {
+  const customer = findCustomerById(currentEditCustomerId);
+  if (!customer) return;
+  const stillExisting = [1, 2, 3].filter(
+    (n) => customer[`foto${n}`] && !editCustomerRemoveSlots.includes(n),
+  ).length;
+  const remaining = Math.max(CONFIG.MAX_CUSTOMER_PHOTOS - stillExisting - selectedEditCustomerImages.length, 0);
+  const info = document.getElementById("editCustomerImageSlotInfo");
+  if (info) info.textContent = `Sisa ${remaining} slot`;
+}
+
+function renderEditCustomerImagePreviews() {
+  const container = document.getElementById("editCustomerImagePreviewContainer");
+  if (!container) return;
+
+  container.innerHTML = selectedEditCustomerImages
+    .map(
+      (img, idx) => `
+      <div class="image-preview-item">
+        <img src="${img.dataUrl}" alt="foto customer baru ${idx + 1}" />
+        <span class="image-size-tag">${img.sizeKb} KB</span>
+        <button type="button" class="remove-image remove-new-customer-image" data-idx="${idx}" title="Hapus">&times;</button>
+      </div>`,
+    )
+    .join("");
+
+  container.querySelectorAll(".remove-new-customer-image").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedEditCustomerImages.splice(parseInt(btn.dataset.idx, 10), 1);
+      renderEditCustomerImagePreviews();
+      updateEditCustomerSlotInfo();
+    });
+  });
+
+  const countLabel = document.getElementById("selectedEditCustomerImageCount");
+  if (countLabel) countLabel.textContent = `${selectedEditCustomerImages.length} foto baru dipilih`;
+}
+
+async function handleEditCustomerImageSelection(fileList) {
+  const customer = findCustomerById(currentEditCustomerId);
+  const stillExisting = customer
+    ? [1, 2, 3].filter((n) => customer[`foto${n}`] && !editCustomerRemoveSlots.includes(n)).length
+    : 0;
+  const remainingSlots = CONFIG.MAX_CUSTOMER_PHOTOS - stillExisting - selectedEditCustomerImages.length;
+  const files = Array.from(fileList);
+
+  if (remainingSlots <= 0) {
+    showStatus(`Slot foto customer sudah penuh (maksimal ${CONFIG.MAX_CUSTOMER_PHOTOS} foto).`, false);
+    return;
+  }
+
+  const toProcess = files.slice(0, remainingSlots);
+  if (files.length > remainingSlots) {
+    showStatus(`Hanya ${remainingSlots} foto ditambahkan (sisa slot terbatas).`, false);
+  }
+
+  for (const file of toProcess) {
+    if (!file.type.startsWith("image/")) continue;
+    try {
+      const compressed = await compressImage(file);
+      selectedEditCustomerImages.push(compressed);
+    } catch (err) {
+      showStatus(`Gagal memproses foto ${file.name}: ${err.message}`, false);
+    }
+  }
+
+  renderEditCustomerImagePreviews();
+  updateEditCustomerSlotInfo();
+}
+
+async function saveEditCustomer() {
+  if (!currentEditCustomerId) return;
+
+  const nama = document.getElementById("editCustomerName").value.trim();
+  const noHp = document.getElementById("editCustomerPhone").value.trim();
+
+  if (!nama) {
+    showStatus("Nama customer wajib diisi.", false);
+    return;
+  }
+  if (!noHp) {
+    showStatus("Nomor HP wajib diisi.", false);
+    return;
+  }
+
+  // Cegah 2 customer berbeda memakai nomor HP yang sama (No HP
+  // adalah kunci utama identifikasi customer).
+  const duplicate = allCustomers.find(
+    (c) => String(c.noHp || "").trim() === noHp && String(c.idCustomer) !== String(currentEditCustomerId),
+  );
+  if (duplicate) {
+    showStatus(`Nomor HP ini sudah dipakai oleh customer lain: ${duplicate.nama} (${duplicate.idCustomer}).`, false, 7000);
+    return;
+  }
+
+  const photos = selectedEditCustomerImages.map((img) => ({ data: img.base64, mimeType: img.mimeType }));
+
+  document.getElementById("loadingOverlay").classList.add("show");
+  updateLoadingMessage("Menyimpan perubahan customer...");
+
+  try {
+    await apiPost({
+      action: "customerupdate",
+      id: currentEditCustomerId,
+      nama,
+      noHp,
+      removeSlots: editCustomerRemoveSlots,
+      photos,
+    });
+
+    document.getElementById("editCustomerModal").classList.remove("show");
+    showStatus(`Data customer ${currentEditCustomerId} berhasil diperbarui.`, true);
+
+    await loadCustomers();
+  } catch (err) {
+    showStatus(`Gagal menyimpan perubahan customer: ${err.message}`, false, 7000);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("show");
+  }
+}
+
+// ==============================
+// EVENTS
+// ==============================
+document.getElementById("searchInput").addEventListener("input", applyFilter);
+document.getElementById("resetFilter").addEventListener("click", () => {
+  document.getElementById("searchInput").value = "";
+  applyFilter();
+});
+
+document.getElementById("closeEditCustomerModal").addEventListener("click", () => {
+  document.getElementById("editCustomerModal").classList.remove("show");
+});
+document.getElementById("editCustomerModal").addEventListener("click", (e) => {
+  if (e.target.id === "editCustomerModal") e.currentTarget.classList.remove("show");
+});
+document.getElementById("cancelEditCustomer").addEventListener("click", () => {
+  document.getElementById("editCustomerModal").classList.remove("show");
+});
+document.getElementById("saveEditCustomer").addEventListener("click", saveEditCustomer);
+document.getElementById("editCustomerImageUpload").addEventListener("change", (e) => {
+  handleEditCustomerImageSelection(e.target.files);
+  e.target.value = "";
+});
+
+// (BARU) Drag & drop foto customer langsung ke area upload
+enableDragDrop(document.getElementById("editCustomerImageUpload").closest(".image-upload-container"), (files) => {
+  handleEditCustomerImageSelection(files);
+});
+
+// ==============================
+// INIT
+// ==============================
+document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("currentYear").textContent = new Date().getFullYear();
+  await loadCustomers();
+
+  // Kalau datang dari halaman lain lewat link "Edit data customer"
+  // (mis. customer.html?edit=CUST-0001), langsung buka modal edit
+  // untuk customer tersebut.
+  const params = new URLSearchParams(window.location.search);
+  const editId = params.get("edit");
+  if (editId) {
+    if (findCustomerById(editId)) {
+      openEditCustomerModal(editId);
+    } else {
+      showStatus(`Customer dengan ID ${editId} tidak ditemukan.`, false, 6000);
+    }
+  }
+});
