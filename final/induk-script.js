@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyVmn3b1HiFMAuhPdtTieNYJVvrj38oNtLFK_uzXPlQKxquGinBKRVMaPDmBCsi4AM-/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx24SIxySt-uGMnkhMuS7SySaTFown7uQlRqZQTF0AgCTR9kQkVchRboibvRDDHfXv7/exec",
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
 };
@@ -262,6 +262,7 @@ function renderTable() {
               <button class="btn-icon btn-view" data-id="${induk.nomorInduk}" title="Detail"><i class="fas fa-eye"></i></button>
               <button class="btn-icon btn-pdf" data-id="${induk.nomorInduk}" title="Download PDF Laporan"><i class="fas fa-file-pdf"></i></button>
               <button class="btn-icon btn-wa" data-id="${induk.nomorInduk}" title="Laporan WA"><i class="fab fa-whatsapp"></i></button>
+              <button class="btn-icon btn-delete-induk" data-id="${induk.nomorInduk}" data-jumlah="${induk.jumlahBarang || 0}" title="Hapus Data Induk"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>`;
@@ -271,6 +272,37 @@ function renderTable() {
   tableBody.querySelectorAll(".btn-view").forEach((b) => b.addEventListener("click", () => openIndukDetail(b.dataset.id)));
   tableBody.querySelectorAll(".btn-pdf").forEach((b) => b.addEventListener("click", () => generateIndukPdf(b.dataset.id)));
   tableBody.querySelectorAll(".btn-wa").forEach((b) => b.addEventListener("click", () => generateWhatsappReport(b.dataset.id)));
+  tableBody.querySelectorAll(".btn-delete-induk").forEach((b) =>
+    b.addEventListener("click", () => deleteInduk(b.dataset.id, parseInt(b.dataset.jumlah, 10) || 0)),
+  );
+}
+
+/**
+ * (BARU) Hapus satu Nomor Induk Transaksi beserta SEMUA barang (ID
+ * NOTLU) di bawahnya dan file terkait (foto barang, dokumen MOU/KTP/
+ * Foto Customer) - PERMANEN, tidak bisa dibatalkan. Selalu meminta
+ * konfirmasi eksplisit dulu lewat window.confirm() sebelum memanggil
+ * server, sesuai permintaan.
+ */
+async function deleteInduk(nomorInduk, jumlahBarang) {
+  const confirmed = window.confirm(
+    `Apakah Anda yakin ingin menghapus data induk ${nomorInduk} dengan total transaksi ${jumlahBarang}?\n\n` +
+      `Semua barang (ID NOTLU) beserta foto & dokumennya akan IKUT TERHAPUS PERMANEN dari server dan Drive, dan TIDAK BISA dikembalikan.`,
+  );
+  if (!confirmed) return;
+
+  document.getElementById("loadingOverlay").classList.add("show");
+  updateLoadingMessage(`Menghapus data induk ${nomorInduk} beserta transaksi & filenya...`);
+  try {
+    await apiPost({ action: "indukdelete", id: nomorInduk });
+    document.getElementById("indukDetailModal").classList.remove("show");
+    showStatus(`Data induk ${nomorInduk} beserta ${jumlahBarang} transaksinya berhasil dihapus.`, true);
+    await loadInduk();
+  } catch (err) {
+    showStatus(`Gagal menghapus data induk: ${err.message}`, false, 7000);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("show");
+  }
 }
 
 // ==============================
@@ -326,11 +358,21 @@ async function openIndukDetail(nomorInduk) {
                 .join("")
             : '<p class="edit-image-hint">Belum ada barang tersimpan di induk ini.</p>'
         }
+        ${
+          items.length
+            ? `<div class="induk-item-row induk-grand-total-row">
+                <div><strong>GRAND TOTAL</strong></div>
+                <div><strong>${formatRupiah(items.reduce((sum, item) => sum + (parseFloat(item.hargaTerima) || 0), 0))}</strong></div>
+                <div></div>
+              </div>`
+            : ""
+        }
       </div>`;
 
     document.getElementById("indukDetailContent").innerHTML = html;
     document.getElementById("indukDetailModal").classList.add("show");
     document.getElementById("indukDetailModal").dataset.nomorInduk = nomorInduk;
+    document.getElementById("indukDetailModal").dataset.itemCount = items.length;
 
     // Reset pilihan foto dokumen yang belum disimpan (BARU), lalu
     // tampilkan foto yang sudah tersimpan (kalau ada) di masing-masing
@@ -670,14 +712,6 @@ async function generateIndukPdf(nomorInduk) {
       doc.text(`No HP: ${customer.noHp || "-"}`, pageWidth / 2, 97, { align: "center" });
     }
 
-    doc.setFontSize(10);
-    doc.setTextColor(120, 120, 120);
-    doc.text(
-      `${items.length} barang (NOTLU) tercakup dalam induk ini`,
-      pageWidth / 2,
-      pageHeight - 20,
-      { align: "center", maxWidth: pageWidth - margin * 2 },
-    );
     doc.setTextColor(0, 0, 0);
 
     // ------- HELPER: render daftar label-value -------
@@ -711,6 +745,85 @@ async function generateIndukPdf(nomorInduk) {
         y += rowHeight;
       });
       return y;
+    }
+
+    /**
+     * (BARU) Tabel ringkasan "Kode Transaksi | Barang | Total" untuk
+     * SEMUA barang dalam induk ini, diikuti garis pemisah dan baris
+     * GRAND TOTAL - ditampilkan di halaman pertama (cover) laporan
+     * PDF, supaya pemilik toko langsung lihat ringkasan tanpa perlu
+     * membuka detail tiap barang satu per satu. Detail lengkap tiap
+     * barang tetap ada di halaman-halaman berikutnya seperti biasa.
+     */
+    function drawIndukSummaryTable(itemsForSummary, startY) {
+      let y = startY;
+      const col1X = margin;
+      const col2X = margin + 42;
+      const col3XRight = pageWidth - margin;
+      const barangColWidth = col3XRight - col2X - 28;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("Kode Transaksi", col1X, y);
+      doc.text("Barang", col2X, y);
+      doc.text("Total", col3XRight, y, { align: "right" });
+      y += 2;
+      doc.setDrawColor(160, 160, 160);
+      doc.setLineWidth(0.3);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+
+      doc.setFont("helvetica", "normal");
+      let grandTotal = 0;
+
+      itemsForSummary.forEach((item) => {
+        const total = parseFloat(item.hargaTerima) || 0;
+        grandTotal += total;
+
+        if (y + 6 > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+
+        const barangLines = doc.splitTextToSize(String(item.jenisBarang || "-"), barangColWidth);
+        doc.text(String(item.id || "-"), col1X, y);
+        doc.text(barangLines[0] || "-", col2X, y); // ringkas 1 baris - detail lengkap ada di halaman per barang
+        doc.text(formatRupiah(total), col3XRight, y, { align: "right" });
+        y += 6;
+      });
+
+      y += 2;
+      if (y + 12 > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 7;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text("GRAND TOTAL", col2X, y);
+      doc.text(formatRupiah(grandTotal), col3XRight, y, { align: "right" });
+      y += 8;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      return { finalY: y, grandTotal: grandTotal };
+    }
+
+    // ------- RINGKASAN TRANSAKSI + GRAND TOTAL (di halaman cover) -------
+    let coverY = customer ? 112 : 95;
+    if (items.length) {
+      coverY = drawSectionTitle("RINGKASAN TRANSAKSI", coverY);
+      drawIndukSummaryTable(items, coverY);
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.setTextColor(120, 120, 120);
+      doc.text("Belum ada barang tersimpan di induk ini.", pageWidth / 2, coverY, { align: "center" });
+      doc.setTextColor(0, 0, 0);
     }
 
     // ------- FOTO INDUK: MOU / KTP / FOTO CUSTOMER SAAT TRANSAKSI -------
@@ -825,6 +938,12 @@ document.getElementById("waFromIndukDetail").addEventListener("click", () => {
 document.getElementById("pdfFromIndukDetail").addEventListener("click", () => {
   const nomorInduk = document.getElementById("indukDetailModal").dataset.nomorInduk;
   if (nomorInduk) generateIndukPdf(nomorInduk);
+});
+document.getElementById("deleteFromIndukDetail").addEventListener("click", () => {
+  const modal = document.getElementById("indukDetailModal");
+  const nomorInduk = modal.dataset.nomorInduk;
+  const jumlahBarang = parseInt(modal.dataset.itemCount, 10) || 0;
+  if (nomorInduk) deleteInduk(nomorInduk, jumlahBarang);
 });
 
 ["mou", "ktp", "fotoCustomer"].forEach((docType) => {
