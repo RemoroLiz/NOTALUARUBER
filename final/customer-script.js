@@ -3,7 +3,7 @@
 // ==============================
 const CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat Code.gs)
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyVmn3b1HiFMAuhPdtTieNYJVvrj38oNtLFK_uzXPlQKxquGinBKRVMaPDmBCsi4AM-/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx24SIxySt-uGMnkhMuS7SySaTFown7uQlRqZQTF0AgCTR9kQkVchRboibvRDDHfXv7/exec",
   MAX_IMAGE_DIMENSION: 1280, // px, sisi terpanjang setelah kompresi
   IMAGE_QUALITY: 0.7, // kualitas JPEG hasil kompresi
   MAX_CUSTOMER_PHOTOS: 3,
@@ -220,6 +220,7 @@ function renderTable() {
           <td>
             <div class="action-buttons">
               <button class="btn-icon btn-edit" data-id="${c.idCustomer}" title="Edit"><i class="fas fa-edit"></i></button>
+              <button class="btn-icon btn-delete-customer" data-id="${c.idCustomer}" title="Hapus Customer"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>`;
@@ -229,6 +230,38 @@ function renderTable() {
   tableBody.querySelectorAll(".btn-edit").forEach((b) =>
     b.addEventListener("click", () => openEditCustomerModal(b.dataset.id)),
   );
+  tableBody.querySelectorAll(".btn-delete-customer").forEach((b) =>
+    b.addEventListener("click", () => deleteCustomer(b.dataset.id)),
+  );
+}
+
+/**
+ * (BARU) Hapus satu profil customer beserta foto-fotonya - PERMANEN,
+ * tidak bisa dibatalkan. Selalu meminta konfirmasi eksplisit dulu
+ * lewat window.confirm() sebelum memanggil server. Riwayat transaksi
+ * yang sudah tercatat atas nama customer ini TIDAK ikut terhapus.
+ */
+async function deleteCustomer(idCustomer) {
+  const customer = findCustomerById(idCustomer);
+  const namaTampil = customer ? `${customer.nama} (${idCustomer})` : idCustomer;
+
+  const confirmed = window.confirm(
+    `Apakah Anda yakin ingin menghapus data customer ${namaTampil}?\n\n` +
+      `Foto customer akan ikut terhapus permanen dari Drive. Riwayat transaksi yang sudah tercatat atas nama customer ini TIDAK akan ikut terhapus, tapi datanya tidak lagi terhubung ke profil customer manapun.`,
+  );
+  if (!confirmed) return;
+
+  document.getElementById("loadingOverlay").classList.add("show");
+  updateLoadingMessage(`Menghapus data customer ${namaTampil}...`);
+  try {
+    await apiPost({ action: "customerdelete", id: idCustomer });
+    showStatus(`Data customer ${namaTampil} berhasil dihapus.`, true);
+    await loadCustomers();
+  } catch (err) {
+    showStatus(`Gagal menghapus data customer: ${err.message}`, false, 7000);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("show");
+  }
 }
 
 // ==============================
