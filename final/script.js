@@ -788,6 +788,14 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.value = ""; // izinkan memilih file yang sama lagi
   });
 
+  // (BARU) Ambil foto langsung dari kamera - memakai handler yang
+  // sama seperti pilih dari galeri (handleImageSelection sudah
+  // menerima FileList apa adanya, jadi tidak perlu logika terpisah).
+  document.getElementById("imageUploadCamera").addEventListener("change", (e) => {
+    handleImageSelection(e.target.files);
+    e.target.value = ""; // izinkan ambil foto lagi berturut-turut
+  });
+
   // (BARU) Drag & drop foto langsung ke area upload
   enableDragDrop(document.getElementById("imageUpload").closest(".image-upload-container"), (files) => {
     handleImageSelection(files);
