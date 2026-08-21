@@ -1303,6 +1303,12 @@ document.getElementById("editImageUpload").addEventListener("change", (e) => {
   e.target.value = "";
 });
 
+// (BARU) Ambil foto langsung dari kamera saat edit transaksi
+document.getElementById("editImageUploadCamera").addEventListener("change", (e) => {
+  handleEditImageSelection(e.target.files);
+  e.target.value = "";
+});
+
 // (BARU) Drag & drop foto tambahan langsung ke area upload di modal edit
 enableDragDrop(document.getElementById("editImageUpload").closest(".image-upload-container"), (files) => {
   handleEditImageSelection(files);
