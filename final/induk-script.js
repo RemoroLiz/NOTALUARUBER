@@ -1154,6 +1154,13 @@ document.getElementById("printStoreFromIndukDetail").addEventListener("click", (
     e.target.value = "";
   });
 
+  // (BARU) Ambil foto dokumen induk langsung dari kamera
+  document.getElementById(`indukDocInputCamera-${docType}`).addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    handleIndukDocFileSelect(docType, file);
+    e.target.value = "";
+  });
+
   // (BARU) Drag & drop foto langsung ke kotak slot dokumen (MOU/KTP/
   // Foto Customer) - hanya file pertama yang dipakai per slot karena
   // tiap slot memang untuk satu foto saja.
