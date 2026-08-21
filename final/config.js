@@ -32,7 +32,7 @@
 const SHARED_CONFIG = {
   // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA SETELAH DEPLOY (lihat
   // Code.gs) - HANYA DI SINI, tidak perlu diganti di file lain lagi.
-  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbx24SIxySt-uGMnkhMuS7SySaTFown7uQlRqZQTF0AgCTR9kQkVchRboibvRDDHfXv7/exec",
+  WEB_APP_URL: "https://script.google.com/macros/s/AKfycbxse8jUOHjUNtdm4GUIU-M6P6fcj0xC-PTPmXel7EYrEvpBi2JiC8u_pHwWzpgdBmf3/exec",
 
   // Pengaturan lain yang nilainya SAMA di semua halaman - kalau ingin
   // diubah (mis. kualitas kompresi foto), cukup diubah di sini saja.
