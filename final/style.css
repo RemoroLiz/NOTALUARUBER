@@ -714,6 +714,22 @@ header h1 i {
 
 .upload-btn:hover { background: var(--navy-light); }
 
+/* (BARU) Tombol "Ambil Foto" (buka kamera langsung di HP) - dibedakan
+   warnanya dari tombol "Pilih Gambar" supaya jelas dua opsi terpisah. */
+.upload-btn-camera {
+  background: var(--gold-dark, #d4af37);
+  color: #fff;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.upload-btn-camera:hover { filter: brightness(0.92); }
+
 .upload-info { display: flex; flex-direction: column; font-size: 0.78rem; color: var(--text-muted); }
 .max-info { font-size: 0.7rem; }
 
@@ -1249,6 +1265,26 @@ footer p { margin-bottom: 4px; }
   justify-content: center;
 }
 .upload-btn-sm:hover { background: var(--navy-light); }
+
+/* (BARU) Varian kecil tombol "Ambil Foto" untuk slot dokumen induk
+   (MOU/KTP/Foto Customer) - ditaruh berdampingan dengan "Pilih Foto". */
+.upload-btn-sm-camera {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--gold-dark, #d4af37);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  justify-content: center;
+  margin-top: 6px;
+}
+.upload-btn-sm-camera:hover { filter: brightness(0.92); }
+
 .induk-doc-status { font-size: 0.68rem; color: var(--text-muted); margin-top: 5px; }
 .induk-doc-status.pending { color: var(--gold-dark); font-weight: 600; }
 
