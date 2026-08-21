@@ -1,8 +1,15 @@
 /**
  * ============================================================
- *  PROTECT.JS - Proteksi Dasar Browser (Anti Klik Kanan / DevTools)
+ *  PROTECT.JS - Proteksi Dasar Browser (Anti Klik Kanan / Shortcut DevTools)
  * ============================================================
  *  SKENARIO A: HTML + CSS + JS murni (atau PHP biasa).
+ *
+ *  (BARU) Fitur "Anti-Debugger Loop" (pembeku tab otomatis saat
+ *  DevTools terdeteksi terbuka) SUDAH DINONAKTIFKAN - lihat catatan
+ *  di bagian 3 di bawah untuk alasannya (salah deteksi & sangat
+ *  mengganggu di iPhone/Safari mobile). Proteksi klik-kanan &
+ *  blokir shortcut keyboard (F12, Ctrl+U, dst) tetap aktif seperti
+ *  biasa, aman dipakai di HP maupun desktop.
  *
  *  CARA PASANG:
  *  Taruh file ini SEBARIS DENGAN style.css (folder yang sama), lalu
@@ -95,78 +102,34 @@
   });
 
   // ------------------------------------------------------------
-  // 3. ANTI-DEBUGGER LOOP - membekukan tab jika DevTools terbuka
-  //    LEWAT MENU BROWSER (bukan cuma lewat shortcut, yang sudah
-  //    diblokir di langkah 2 di atas). Menu "..." atau menu
-  //    "Developer Tools" browser tidak bisa dicegat lewat event
-  //    keyboard, jadi dipakai trik berbeda:
-  //
-  //    Setiap sekian milidetik, kode memanggil `debugger;`. Statement
-  //    ini TIDAK berpengaruh apa-apa selama DevTools TERTUTUP (browser
-  //    mengabaikannya). Tapi begitu DevTools DIBUKA, `debugger;`
-  //    membuat eksekusi berhenti (pause) di titik itu - karena
-  //    dipanggil berulang setiap 50ms, halaman jadi terasa "membeku"
-  //    / tidak responsif selama DevTools dibiarkan terbuka. Begitu
-  //    DevTools ditutup lagi, halaman otomatis normal kembali.
+  // 3. ANTI-DEBUGGER LOOP - DINONAKTIFKAN (BARU)
   // ------------------------------------------------------------
-  let devToolsWarned = false;
-
-  function showDevToolsOverlay() {
-    if (devToolsWarned) return;
-    devToolsWarned = true;
-    const overlay = document.createElement("div");
-    overlay.id = "__protectOverlay";
-    overlay.style.cssText =
-      "position:fixed;inset:0;z-index:2147483647;background:#0d0d17;color:#fff;" +
-      "display:flex;align-items:center;justify-content:center;text-align:center;" +
-      "font-family:Arial,Helvetica,sans-serif;padding:24px;";
-    overlay.innerHTML =
-      '<div><h2 style="margin:0 0 8px;">Developer Tools terdeteksi terbuka</h2>' +
-      '<p style="margin:0;opacity:.8;">Tutup DevTools untuk melanjutkan menggunakan halaman ini.</p></div>';
-    document.body.appendChild(overlay);
-  }
-
-  function hideDevToolsOverlay() {
-    devToolsWarned = false;
-    const overlay = document.getElementById("__protectOverlay");
-    if (overlay) overlay.remove();
-  }
-
-  function antiDebuggerLoop() {
-    const t0 = performance.now();
-    // eslint-disable-next-line no-debugger
-    debugger;
-    const t1 = performance.now();
-
-    // Jika DevTools TERTUTUP, baris "debugger;" di atas praktis tidak
-    // memakan waktu (delta sangat kecil). Jika DevTools TERBUKA
-    // (dengan panel Sources aktif), baris itu membuat eksekusi pause
-    // sampai pengguna melanjutkan/menutup DevTools, sehingga delta
-    // waktunya jauh lebih besar - itu tanda DevTools sedang dibuka.
-    if (t1 - t0 > 100) {
-      showDevToolsOverlay();
-    } else {
-      hideDevToolsOverlay();
-    }
-  }
-
-  // Deteksi tambahan berbasis ukuran jendela - menangkap kasus DevTools
-  // di-dock (menempel) di sisi/bawah browser, yang membuat selisih
-  // antara ukuran jendela luar (outerWidth/Height) dan area konten
-  // (innerWidth/Height) melebar drastis.
-  function checkWindowSizeThreshold() {
-    const threshold = 160;
-    const widthDiff = window.outerWidth - window.innerWidth;
-    const heightDiff = window.outerHeight - window.innerHeight;
-    if (widthDiff > threshold || heightDiff > threshold) {
-      showDevToolsOverlay();
-    }
-  }
-
-  setInterval(function () {
-    antiDebuggerLoop();
-    checkWindowSizeThreshold();
-  }, 50);
+  // Fitur ini SEBELUMNYA membekukan tab kalau DevTools terdeteksi
+  // terbuka, salah satunya lewat heuristik ukuran jendela
+  // (window.outerWidth/outerHeight dibanding innerWidth/innerHeight).
+  //
+  // MASALAH: heuristik ukuran jendela ini TIDAK RELIABLE di browser
+  // mobile, terutama Safari di iPhone - selisih outer/inner size di
+  // sana bisa melebar drastis hanya karena address bar muncul/
+  // hilang saat scroll, mode "Add to Home Screen" (PWA), rotasi
+  // layar, dst - SEMUA itu SALAH TERDETEKSI sebagai "DevTools
+  // terbuka" padahal iPhone bahkan tidak punya DevTools yang bisa
+  // diakses dengan cara itu. Akibatnya overlay "Developer Tools
+  // terdeteksi terbuka" malah muncul untuk pengunjung biasa yang
+  // memakai HP secara normal - sangat mengganggu.
+  //
+  // Makanya seluruh bagian ini (anti-debugger loop + deteksi ukuran
+  // jendela + overlay pemblokir) DIMATIKAN. Proteksi klik-kanan
+  // (bagian 1) dan blokir shortcut keyboard DevTools (bagian 2) di
+  // atas TETAP AKTIF seperti biasa - keduanya aman dipakai di HP
+  // karena tidak bergantung pada heuristik ukuran layar yang rawan
+  // salah deteksi ini.
+  //
+  // Kalau di kemudian hari ingin proteksi anti-DevTools yang lebih
+  // agresif lagi khusus untuk pengunjung DESKTOP saja (tidak
+  // menyentuh mobile sama sekali), beri tahu saya - bisa dibuatkan
+  // versi yang hanya aktif setelah memastikan perangkatnya benar-benar
+  // desktop, bukan sekadar mengandalkan ukuran jendela.
 
   // ------------------------------------------------------------
   // 4. (OPSIONAL) NONAKTIFKAN DRAG GAMBAR KELUAR HALAMAN - supaya
