@@ -59,58 +59,17 @@ export function useDevToolsProtection() {
     };
     document.addEventListener("keydown", handleKeyDown);
 
-    // ---------- 3. Anti-Debugger Loop + overlay ----------
-    let warned = false;
-    let overlayEl = null;
-
-    const showOverlay = () => {
-      if (warned) return;
-      warned = true;
-      overlayEl = document.createElement("div");
-      overlayEl.id = "__reactProtectOverlay";
-      overlayEl.style.cssText =
-        "position:fixed;inset:0;z-index:2147483647;background:#0d0d17;color:#fff;" +
-        "display:flex;align-items:center;justify-content:center;text-align:center;" +
-        "font-family:Arial,Helvetica,sans-serif;padding:24px;";
-      overlayEl.innerHTML =
-        '<div><h2 style="margin:0 0 8px;">Developer Tools terdeteksi terbuka</h2>' +
-        '<p style="margin:0;opacity:.8;">Tutup DevTools untuk melanjutkan.</p></div>';
-      document.body.appendChild(overlayEl);
-    };
-
-    const hideOverlay = () => {
-      warned = false;
-      if (overlayEl && overlayEl.parentNode) overlayEl.remove();
-      overlayEl = null;
-    };
-
-    const tick = () => {
-      const t0 = performance.now();
-      // eslint-disable-next-line no-debugger
-      debugger;
-      const t1 = performance.now();
-
-      if (t1 - t0 > 100) {
-        showOverlay();
-      } else {
-        hideOverlay();
-      }
-
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      if (widthDiff > 160 || heightDiff > 160) {
-        showOverlay();
-      }
-    };
-
-    const intervalId = setInterval(tick, 50);
+    // ---------- 3. Anti-Debugger Loop - DINONAKTIFKAN (BARU) ----------
+    // Dihapus karena heuristik ukuran jendela (outerWidth/outerHeight
+    // vs innerWidth/innerHeight) tidak reliable di browser mobile,
+    // terutama Safari iPhone - salah deteksi "DevTools terbuka" hanya
+    // karena address bar muncul/hilang, mode PWA, atau rotasi layar.
+    // Lihat catatan lengkap di protect.js (versi HTML murni).
 
     // ---------- Cleanup saat komponen unmount ----------
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
-      clearInterval(intervalId);
-      hideOverlay();
     };
   }, []);
 }
