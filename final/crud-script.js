@@ -295,7 +295,7 @@ function renderTable() {
       const dropdown = btn.nextElementSibling;
       const wasOpen = dropdown.classList.contains("show");
       closeAllActionDropdowns();
-      if (!wasOpen) dropdown.classList.add("show");
+      if (!wasOpen) openActionDropdown(btn, dropdown);
     });
   });
 }
@@ -308,8 +308,88 @@ function renderTable() {
  * diklik atau area lain di halaman diklik.
  */
 function closeAllActionDropdowns() {
-  document.querySelectorAll(".action-dropdown.show").forEach((d) => d.classList.remove("show"));
+  document.querySelectorAll(".action-dropdown.show").forEach((d) => {
+    d.classList.remove("show");
+    // PERBAIKAN (BARU) - bersihkan style inline yang dipasang saat
+    // dibuka (lihat openActionDropdown()), supaya class ".action-dropdown"
+    // (display: none secara default) kembali sepenuhnya mengontrol
+    // status tersembunyi - kalau tidak dibersihkan, style inline
+    // "display: block" yang dipasang untuk mengukur tinggi dropdown
+    // akan terus menimpa aturan CSS class tersebut.
+    d.style.display = "";
+    d.style.visibility = "";
+  });
 }
+
+/**
+ * PERBAIKAN BUG (BARU) - "menu aksi terpotong di baris paling bawah,
+ * harus scroll dulu".
+ *
+ * PENYEBAB: dropdown ini sebelumnya `position: absolute` relatif ke
+ * tombol pemicunya, di dalam tabel yang wadahnya (`.table-responsive`)
+ * membatasi area yang terlihat (overflow). Untuk baris di dekat
+ * bagian BAWAH tabel/halaman, dropdown yang selalu terbuka ke BAWAH
+ * jadi terpotong oleh batas wadah tersebut atau oleh tepi bawah layar
+ * - pengguna harus scroll dulu baru menu aksinya kelihatan penuh.
+ *
+ * PERBAIKAN: dropdown sekarang diposisikan lewat JavaScript dengan
+ * `position: fixed` (mengikuti posisi di LAYAR, bukan di dalam tabel)
+ * dihitung dari posisi tombol pemicunya - dan OTOMATIS DIBALIK
+ * MEMBUKA KE ATAS kalau ruang di bawah tombol tidak cukup. Dengan
+ * `position: fixed`, dropdown tidak lagi terpengaruh batas
+ * overflow milik tabel sama sekali, jadi tidak akan pernah terpotong.
+ */
+function openActionDropdown(toggleBtn, dropdown) {
+  // Ukur dulu tinggi & lebar dropdown - sementara ditampilkan tapi
+  // disembunyikan secara visual (visibility: hidden), supaya
+  // ukurannya bisa dihitung SEBELUM diputuskan dropdown dibuka ke
+  // atas atau ke bawah.
+  dropdown.style.visibility = "hidden";
+  dropdown.style.display = "block";
+  dropdown.style.position = "fixed";
+  dropdown.style.right = "auto"; // batalkan "right: 0" bawaan CSS - posisi diatur lewat "left" di bawah
+
+  const dropdownRect = dropdown.getBoundingClientRect();
+  const btnRect = toggleBtn.getBoundingClientRect();
+  const dropdownHeight = dropdownRect.height;
+  const dropdownWidth = dropdownRect.width;
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const gap = 4;
+
+  const spaceBelow = viewportHeight - btnRect.bottom;
+  const spaceAbove = btnRect.top;
+
+  // Buka ke bawah kalau ruangnya cukup, ATAU kalau ruang di atas
+  // ternyata malah lebih sempit lagi (dalam kasus ini tetap dibuka ke
+  // bawah walau harus sedikit terpotong ekstrem, karena itu opsi
+  // terbaik yang tersedia - kasus ini sangat jarang terjadi).
+  let top;
+  if (spaceBelow >= dropdownHeight + gap || spaceBelow >= spaceAbove) {
+    top = btnRect.bottom + gap;
+  } else {
+    top = btnRect.top - dropdownHeight - gap;
+  }
+  // Jaga-jaga supaya tidak keluar dari tepi atas/bawah layar sama sekali.
+  top = Math.max(gap, Math.min(top, viewportHeight - dropdownHeight - gap));
+
+  // Rata kanan terhadap tombol pemicu (meniru "right: 0" bawaan CSS),
+  // tapi tetap dijaga tidak keluar dari tepi kiri/kanan layar.
+  let left = btnRect.right - dropdownWidth;
+  left = Math.max(gap, Math.min(left, viewportWidth - dropdownWidth - gap));
+
+  dropdown.style.top = `${top}px`;
+  dropdown.style.left = `${left}px`;
+  dropdown.style.visibility = "visible";
+  dropdown.classList.add("show");
+}
+
+// PERBAIKAN (BARU) - tutup dropdown otomatis saat halaman di-scroll
+// atau ukuran jendela berubah, supaya dropdown yang posisinya
+// "fixed" (dihitung sekali saat dibuka) tidak pernah terlihat
+// "lepas"/tidak nyambung lagi dari tombol pemicunya.
+window.addEventListener("scroll", () => closeAllActionDropdowns(), true);
+window.addEventListener("resize", () => closeAllActionDropdowns());
 
 document.addEventListener("click", () => closeAllActionDropdowns());
 
@@ -851,13 +931,31 @@ async function printStoreReceipt(id, v) {
   await printThermalDocument(buildStoreReceipt(id, v));
 }
 
+/**
+ * PERBAIKAN (BARU) - "cetak jadi lambat/terhambat kalau mau cetak
+ * banyak berturut-turut". SEBELUMNYA di sini dipanggil loadData()
+ * (fetch ULANG seluruh data dari server + render ulang seluruh
+ * tabel) setiap kali SATU struk selesai dicetak - membuat proses
+ * mencetak beberapa transaksi berturut-turut jadi lambat/terasa
+ * "macet" karena harus menunggu round-trip ke server tiap kali.
+ *
+ * PERBAIKAN: status "SUDAH CETAK" cukup diperbarui LANGSUNG di data
+ * yang sudah ada di memori (findById() mengembalikan referensi objek
+ * yang sama seperti yang ada di allData/filteredData, jadi
+ * mengubahnya di sini otomatis konsisten di semua tempat), lalu
+ * tabel dirender ulang dari data lokal itu (instan, tanpa ke
+ * server). Refresh PENUH dari server (loadData()) sengaja
+ * "dibelakangkan" - tidak lagi dilakukan otomatis di sini, supaya
+ * tidak menghalangi user lanjut mencetak baris berikutnya.
+ */
 async function reprintCustomerById(id) {
   const data = findById(id);
   if (!data) return;
   await printCustomerReceipt(id, data);
   try {
     await apiPost({ action: "markPrinted", id });
-    await loadData();
+    data.statusCetak = "SUDAH CETAK";
+    renderTable();
   } catch (err) {
     console.error("Gagal menandai status cetak:", err);
   }
@@ -869,7 +967,8 @@ async function reprintStoreById(id) {
   await printStoreReceipt(id, data);
   try {
     await apiPost({ action: "markPrinted", id });
-    await loadData();
+    data.statusCetak = "SUDAH CETAK";
+    renderTable();
   } catch (err) {
     console.error("Gagal menandai status cetak:", err);
   }
